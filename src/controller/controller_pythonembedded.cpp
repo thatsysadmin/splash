@@ -1,11 +1,11 @@
-#include "./controller_pythonembedded.h"
+#include "./controller/controller_pythonembedded.h"
 
 #include <fstream>
 #include <functional>
 #include <mutex>
 
-#include "./osutils.h"
 #include "./utils/log.h"
+#include "./utils/osutils.h"
 
 #define SPLASH_PYTHON_MAX_TRIES 200
 
@@ -1558,7 +1558,7 @@ PyObject* PythonEmbedded::pythonRegisterAttributeCallback(PyObject* /*self*/, Py
         return Py_BuildValue("I", 0);
     }
 
-    auto callbackFunc = [=](const string& obj, const string& attr) {
+    auto callbackFunc = [that, callable](const string& obj, const string& attr) {
         lock_guard<mutex> lockCb(that->_attributeCallbackMutex);
 
         PyEval_AcquireThread(that->_pythonGlobalThreadState);

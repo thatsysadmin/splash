@@ -55,7 +55,7 @@ Installation
 Splash relies on a few libraries to get the job done. These libraries are:
 
 - [OpenGL](http://opengl.org), which should be installed by the graphic driver,
-- [libshmdata](http://code.sat.qc.ca/redmine/projects/libshmdata) to read video flows from a shared memory,
+- [libshmdata](http://gitlab.com/sat-metalab/shmdata) to read video flows from a shared memory,
 - [GSL](http://gnu.org/software/gsl) (GNU Scientific Library) to compute calibration,
 - [portaudio](http://portaudio.com/) to read and output audio,
 - [Python](https://python.org) for scripting capabilities,
@@ -68,7 +68,6 @@ A few more libraries are used as submodules in the git repository:
 - [GLM](http://glm.g-truc.net) to ease matrix manipulation,
 - [ImGui](https://github.com/ocornut/imgui) to draw the GUI,
 - [doctest](https://github.com/onqtam/doctest/) to do some unit testing,
-- [Piccante](https://github.com/banterle/piccante) to create HDR images,
 - [Snappy](https://code.google.com/p/snappy/) to handle Hap codec decompression,
 - [libltc](http://x42.github.io/libltc/) to read timecodes from an audio input,
 - [JsonCpp](http://jsoncpp.sourceforge.net) to load and save the configuration,

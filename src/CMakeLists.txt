@@ -22,6 +22,7 @@
 #
 add_definitions(-Wall -Wextra -Werror)
 add_definitions(-Wno-unknown-pragmas)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL")
 
 # Disable warnings for some specific files
 set_source_files_properties(
@@ -50,8 +51,11 @@ endif()
 #
 include_directories(./)
 
-include_directories(../external/cppzmq)
-include_directories(../external/glm)
+if (NOT USE_SYSTEM_LIBS)
+    include_directories(../external/cppzmq)
+    include_directories(../external/glm)
+endif()
+
 include_directories(../external/hap/source)
 include_directories(../external/imgui)
 include_directories(../external/jsoncpp)
@@ -222,7 +226,7 @@ if (PYTHONLIBS_FOUND)
     set_source_files_properties(
         controller/controller_pythonembedded.cpp
         controller/python/python_sink.cpp
-        PROPERTIES COMPILE_FLAGS -Wno-missing-field-initializers
+	PROPERTIES COMPILE_FLAGS "-Wno-missing-field-initializers -Wno-cast-function-type"
     )
 
     target_sources(splash-${API_VERSION} PRIVATE
@@ -232,10 +236,15 @@ if (PYTHONLIBS_FOUND)
 endif()
 
 # Distributed third parties first
-target_link_libraries(splash-${API_VERSION} ${FFMPEG_STATIC_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} snappy)
 target_link_libraries(splash-${API_VERSION} glfw)
-target_link_libraries(splash-${API_VERSION} zmq.a)
+if (USE_SYSTEM_LIBS)
+    target_link_libraries(splash-${API_VERSION} ${FFMPEG_LIBRARIES})
+    target_link_libraries(splash-${API_VERSION} zmq)
+else()
+    target_link_libraries(splash-${API_VERSION} ${FFMPEG_STATIC_LIBRARIES})
+    target_link_libraries(splash-${API_VERSION} zmq.a)
+endif()
 
 target_link_libraries(splash-${API_VERSION} pthread)
 target_link_libraries(splash-${API_VERSION} ${Boost_LIBRARIES})

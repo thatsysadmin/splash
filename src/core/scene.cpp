@@ -512,22 +512,6 @@ void Scene::textureUploadRun()
             break;
 
         {
-#ifdef PROFILE
-            PROFILEGL("Texture upload loop");
-#endif
-
-            unique_lock<Spinlock> lockTexture(_textureMutex);
-
-            if (glIsSync(_cameraDrawnFence) == GL_TRUE)
-            {
-#ifdef PROFILE
-                PROFILEGL("texture sync");
-#endif
-                glWaitSync(_cameraDrawnFence, 0, GL_TIMEOUT_IGNORED);
-                glDeleteSync(_cameraDrawnFence);
-            }
-
-            Timer::get() << "textureUpload";
 
             vector<shared_ptr<Texture>> textures;
             bool expectedAtomicValue = false;
@@ -541,6 +525,32 @@ void Scene::textureUploadRun()
                 }
                 _objectsCurrentlyUpdated.store(false, std::memory_order_release);
             }
+
+            // Wait for Scene's signal that the texture can be uploaded
+            expectedAtomicValue = true;
+            if (!_doUploadTextures.compare_exchange_strong(expectedAtomicValue, false, std::memory_order_acq_rel))
+            {
+                unique_lock<mutex> lockCondition(_doUploadTexturesMutex);
+                _doUploadTexturesCondition.wait_for(lockCondition, chrono::milliseconds(50));
+                _doUploadTextures = false;
+            }
+
+            unique_lock<Spinlock> lockTexture(_textureMutex);
+
+#ifdef PROFILE
+            PROFILEGL("Texture upload loop");
+#endif
+
+            if (glIsSync(_cameraDrawnFence) == GL_TRUE)
+            {
+#ifdef PROFILE
+                PROFILEGL("texture sync");
+#endif
+                glWaitSync(_cameraDrawnFence, 0, GL_TIMEOUT_IGNORED);
+                glDeleteSync(_cameraDrawnFence);
+            }
+
+            Timer::get() << "textureUpload";
 
             for (auto& texture : textures)
             {
@@ -1134,6 +1144,14 @@ void Scene::registerAttributes()
         return true;
     });
     setAttributeDescription("swapTestColor", "Set the swap test color");
+
+    addAttribute("uploadTextures", [&](const Values& /*args*/) {
+        unique_lock<mutex> lockCondition(_doUploadTexturesMutex);
+        _doUploadTextures = true;
+        _doUploadTexturesCondition.notify_all();
+        return true;
+    });
+    setAttributeDescription("uploadTextures", "Signal that textures should be uploaded right away");
 
     addAttribute("quit", [&](const Values&) {
         addTask([=]() {

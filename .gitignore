@@ -2,6 +2,7 @@
 *.data
 *.deb
 *.o
+*.js
 *.json
 *.lo
 *.la
@@ -14,6 +15,7 @@
 *.swo
 *.tar.gz
 *.tar.bz2
+*.wasm
 *.zip
 *.DS_Store
 *__pycache__*

@@ -17,6 +17,8 @@
 # along with Splash.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+add_subdirectory(remote)
+
 #
 # Enable all warnings as errors
 #

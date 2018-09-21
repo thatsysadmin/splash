@@ -22,3 +22,7 @@ echo "Building FFmpeg..."
 # ZMQ
 echo "Building ZMQ..."
 ./build_zmq.sh
+
+# EMSDK
+echo "Building Emsdk..."
+./build_emsdk.sh

@@ -32,3 +32,6 @@
 [submodule "external/flamegraph"]
 	path = external/flamegraph
 	url = https://github.com/brendangregg/FlameGraph.git
+[submodule "external/emsdk"]
+	path = external/emsdk
+	url = https://github.com/juj/emsdk.git

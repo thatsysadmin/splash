@@ -83,6 +83,12 @@ test:archlinux:
     - make -j$(nproc)
     - make test
 
+test:emscripten:
+  stage: test
+  image: ubuntu:18.04
+  script:
+    - make remote-webasm
+
 #
 # Package
 #

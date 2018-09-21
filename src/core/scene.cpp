@@ -1,5 +1,6 @@
 #include "./core/scene.h"
 
+#include <list>
 #include <utility>
 
 #include "./controller/controller_blender.h"
@@ -65,11 +66,16 @@ bool Scene::getHasNVSwapGroup()
 Scene::Scene(const string& name, const string& socketPrefix)
     : _objectLibrary(dynamic_cast<RootObject*>(this))
 {
+#ifdef DEBUG
     Log::get() << Log::DEBUGGING << "Scene::Scene - Scene created successfully" << Log::endl;
+#endif
 
     _isRunning = true;
     _name = name;
     _linkSocketPrefix = socketPrefix;
+
+    registerAttributes();
+    initializeTree();
 
     // We have to reset the factory to create a Scene factory
     _factory.reset(new Factory(this));
@@ -79,8 +85,6 @@ Scene::Scene(const string& name, const string& socketPrefix)
         _blender->setName("blender");
         _objects["blender"] = _blender;
     }
-
-    registerAttributes();
 
     init(_name);
 }
@@ -103,13 +107,17 @@ Scene::~Scene()
 
     _link->disconnectFrom("world");
 
+#ifdef DEBUG
     Log::get() << Log::DEBUGGING << "Scene::~Scene - Destructor" << Log::endl;
+#endif
 }
 
 /*************/
 std::shared_ptr<GraphObject> Scene::addObject(const string& type, const string& name)
 {
+#ifdef DEBUG
     Log::get() << Log::DEBUGGING << "Scene::" << __FUNCTION__ << " - Creating object of type " << type << Log::endl;
+#endif
 
     lock_guard<recursive_mutex> lockObjects(_objectsMutex);
 
@@ -120,7 +128,9 @@ std::shared_ptr<GraphObject> Scene::addObject(const string& type, const string& 
     // Check whether an object of this name already exists
     if (getObject(name))
     {
+#ifdef DEBUG
         Log::get() << Log::DEBUGGING << "Scene::" << __FUNCTION__ << " - An object named " << name << " already exists" << Log::endl;
+#endif
         return {};
     }
 
@@ -158,106 +168,16 @@ void Scene::addGhost(const string& type, const string& name)
     if (find(_ghostableTypes.begin(), _ghostableTypes.end(), type) == _ghostableTypes.end())
         return;
 
+#ifdef DEBUG
     Log::get() << Log::DEBUGGING << "Scene::" << __FUNCTION__ << " - Creating ghost object of type " << type << Log::endl;
-
-    // Add the object for real ...
+#endif
     auto obj = addObject(type, name);
     if (obj)
     {
-        // And move it to _objects
-        lock_guard<recursive_mutex> lockObjects(_objectsMutex);
-        obj->setGhost(true);
+        auto ghostPath = "/" + _name + "/objects/" + name + "/ghost";
+        _tree.createLeafAt(ghostPath);
+        _tree.setValueForLeafAt(ghostPath, true);
     }
-}
-
-/*************/
-Values Scene::getAttributeFromObject(const string& name, const string& attribute)
-{
-    lock_guard<recursive_mutex> lockObjects(_objectsMutex);
-    auto object = getObject(name);
-
-    Values values;
-    if (object)
-    {
-        object->getAttribute(attribute, values);
-    }
-    // Ask the World if it knows more about this object
-    else
-    {
-        auto answer = sendMessageToWorldWithAnswer("getAttribute", {name, attribute}, 1e4);
-        for (unsigned int i = 1; i < answer.size(); ++i)
-            values.push_back(answer[i]);
-    }
-
-    return values;
-}
-
-/*************/
-Values Scene::getAttributeDescriptionFromObject(const string& name, const string& attribute)
-{
-    lock_guard<recursive_mutex> lockObjects(_objectsMutex);
-    auto objectIt = _objects.find(name);
-
-    Values values;
-    if (objectIt != _objects.end())
-    {
-        auto& object = objectIt->second;
-        values.push_back(object->getAttributeDescription(attribute));
-    }
-
-    // Ask the World if it knows more about this object
-    if (values.size() == 0 || values[0].as<string>() == "")
-    {
-        auto answer = sendMessageToWorldWithAnswer("getAttributeDescription", {name, attribute}, 10000);
-        if (!answer.empty())
-        {
-            values.clear();
-            values.push_back(answer[1]);
-        }
-    }
-
-    return values;
-}
-
-/*************/
-Json::Value Scene::getConfigurationAsJson()
-{
-    lock_guard<recursive_mutex> lockObjects(_objectsMutex);
-
-    Json::Value root;
-    auto sceneConfiguration = BaseObject::getConfigurationAsJson();
-    for (const auto& attr : sceneConfiguration.getMemberNames())
-        root[attr] = sceneConfiguration[attr];
-
-    // Save objects attributes
-    for (auto& obj : _objects)
-        if (obj.second->getSavable() && !obj.second->isGhost())
-            root["objects"][obj.first] = obj.second->getConfigurationAsJson();
-
-    // Save links
-    Values links;
-    for (auto& obj : _objects)
-    {
-        if (!obj.second->getSavable() || obj.second->isGhost())
-            continue;
-
-        auto linkedObjects = obj.second->getLinkedObjects();
-        for (auto& weakLinkedObject : linkedObjects)
-        {
-            auto linkedObject = weakLinkedObject.lock();
-            if (!linkedObject)
-                continue;
-
-            if (!linkedObject->getSavable() || obj.second->isGhost())
-                continue;
-
-            links.push_back(Values({linkedObject->getName(), obj.second->getName()}));
-        }
-    }
-
-    root["links"] = getValuesAsJson(links);
-
-    return root;
 }
 
 /*************/
@@ -319,10 +239,6 @@ void Scene::render()
             {
                 // We also run all pending tasks for every object
                 obj.second->runTasks();
-
-                // Ghosts are not updated in the render loop
-                if (obj.second->isGhost())
-                    continue;
 
                 auto priority = obj.second->getRenderingPriority();
                 if (priority == GraphObject::Priority::NO_RENDER)
@@ -434,6 +350,11 @@ void Scene::run()
     _mainWindow->setAsCurrentContext();
     while (_isRunning)
     {
+        // Process tree updates
+        Timer::get() << "tree_process";
+        _tree.processQueue();
+        Timer::get() >> "tree_process";
+
         // This gets the whole loop duration
         if (_runInBackground && _swapInterval != 0)
         {
@@ -446,26 +367,37 @@ void Scene::run()
         Timer::get() << "loop_scene";
 
         // Execute waiting tasks
+        executeTreeCommands();
         runTasks();
 
-        if (!_started)
+        if (_started)
+        {
+            Timer::get() << "rendering";
+            render();
+            Timer::get() >> "rendering";
+
+            Timer::get() << "inputsUpdate";
+            updateInputs();
+            Timer::get() >> "inputsUpdate";
+        }
+        else
         {
             this_thread::sleep_for(chrono::milliseconds(50));
-            continue;
         }
 
-        Timer::get() << "rendering";
-        render();
-        Timer::get() >> "rendering";
-
-        Timer::get() << "inputsUpdate";
-        updateInputs();
-        Timer::get() >> "inputsUpdate";
+        Timer::get() << "tree_propagate";
+        updateTreeFromObjects();
+        propagateTree();
+        Timer::get() >> "tree_propagate";
     }
     _mainWindow->releaseContext();
 
     signalBufferObjectUpdated();
     _textureUploadFuture.wait();
+
+    // Clean the tree from anything related to this Scene
+    _tree.cutBranchAt("/" + _name);
+    propagateTree();
 
 #ifdef PROFILE
     ProfilerGL::get().processTimings();
@@ -707,17 +639,6 @@ shared_ptr<GlWindow> Scene::getNewSharedWindow(const string& name)
 }
 
 /*************/
-Values Scene::getObjectsNameByType(const string& type)
-{
-    lock_guard<recursive_mutex> lock(_objectsMutex);
-    Values list;
-    for (auto& obj : _objects)
-        if (obj.second->getType() == type)
-            list.push_back(obj.second->getName());
-    return list;
-}
-
-/*************/
 vector<int> Scene::findGLVersion()
 {
     vector<vector<int>> glVersionList{{4, 5}};
@@ -923,8 +844,6 @@ void Scene::glMsgCallback(GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum 
 /*************/
 void Scene::registerAttributes()
 {
-    RootObject::registerAttributes();
-
     addAttribute("addObject",
         [&](const Values& args) {
             addTask([=]() {
@@ -943,21 +862,10 @@ void Scene::registerAttributes()
         {'s', 's'});
     setAttributeDescription("addObject", "Add an object of the given name, type, and optionally the target scene");
 
-    addAttribute("config", [&](const Values&) {
-        addTask([&]() -> void {
-            setlocale(LC_NUMERIC, "C"); // Needed to make sure numbers are written with commas
-            Json::Value config = getConfigurationAsJson();
-            string configStr = config.toStyledString();
-            sendMessageToWorld("answerMessage", {"config", _name, configStr});
-        });
-        return true;
-    });
-    setAttributeDescription("config", "Ask the Scene for a JSON describing its configuration");
-
     addAttribute("deleteObject",
         [&](const Values& args) {
             addTask([=]() -> void {
-                // We wait until we can indeed deleted the object
+                // We wait until we can indeed delete the object
                 bool expectedAtomicValue = false;
                 while (!_objectsCurrentlyUpdated.compare_exchange_strong(expectedAtomicValue, true, std::memory_order_acquire))
                     this_thread::sleep_for(chrono::milliseconds(1));
@@ -1005,19 +913,6 @@ void Scene::registerAttributes()
         {'n', 'n', 'n', 'n', 'n', 'n', 'n'});
     setAttributeDescription("masterClock", "Set the timing of the master clock");
 
-    addAttribute("getObjectsNameByType",
-        [&](const Values& args) {
-            addTask([=]() {
-                string type = args[0].as<string>();
-                Values list = getObjectsNameByType(type);
-                sendMessageToWorld("answerMessage", {"getObjectsNameByType", _name, list});
-            });
-
-            return true;
-        },
-        {'s'});
-    setAttributeDescription("getObjectsNameByType", "Get a list of the objects having the given type");
-
     addAttribute("link",
         [&](const Values& args) {
             addTask([=]() {
@@ -1033,10 +928,10 @@ void Scene::registerAttributes()
 
     addAttribute("log",
         [&](const Values& args) {
-            Log::get().setLog(args[0].as<string>(), (Log::Priority)args[1].as<int>());
+            Log::get().setLog(args[0].as<uint64_t>(), args[1].as<string>(), (Log::Priority)args[2].as<int>());
             return true;
         },
-        {'s', 'n'});
+        {'n', 's', 'n'});
     setAttributeDescription("log", "Add an entry to the logs, given its message and priority");
 
     addAttribute("logToFile",
@@ -1072,23 +967,6 @@ void Scene::registerAttributes()
         {'s'});
     setAttributeDescription("remove", "Remove the object of the given name");
 
-    addAttribute("setAlias",
-        [&](const Values& args) {
-            auto name = args[0].as<string>();
-            auto alias = args[1].as<string>();
-
-            addTask([=]() {
-                lock_guard<recursive_mutex> lock(_objectsMutex);
-
-                auto object = getObject(name);
-                if (object)
-                    object->setAlias(alias);
-            });
-
-            return true;
-        },
-        {'s', 's'});
-
     addAttribute("setMaster", [&](const Values& args) {
         addTask([=]() {
             if (args.empty())
@@ -1112,16 +990,6 @@ void Scene::registerAttributes()
         return true;
     });
     setAttributeDescription("stop", "Stop the Scene main loop");
-
-    addAttribute("swapInterval",
-        [&](const Values& args) {
-            _swapInterval = max(-1, args[0].as<int>());
-            _targetFrameDuration = updateTargetFrameDuration();
-            return true;
-        },
-        [&]() -> Values { return {(int)_swapInterval}; },
-        {'n'});
-    setAttributeDescription("swapInterval", "Set the interval between two video frames. 1 is synced, 0 is not, -1 to sync when possible ");
 
     addAttribute("swapTest", [&](const Values& args) {
         addTask([=]() {
@@ -1207,22 +1075,6 @@ void Scene::registerAttributes()
     setAttributeDescription("calibrateColorResponseFunction", "Launch the camera color calibration");
 #endif
 
-    addAttribute("configurationPath",
-        [&](const Values& args) {
-            _configurationPath = args[0].as<string>();
-            return true;
-        },
-        {'s'});
-    setAttributeDescription("configurationPath", "Path to the configuration files");
-
-    addAttribute("mediaPath",
-        [&](const Values& args) {
-            _mediaPath = args[0].as<string>();
-            return true;
-        },
-        {'s'});
-    setAttributeDescription("mediaPath", "Path to the media files");
-
     addAttribute("runInBackground",
         [&](const Values& args) {
             _runInBackground = args[0].as<bool>();
@@ -1230,6 +1082,44 @@ void Scene::registerAttributes()
         },
         {'n'});
     setAttributeDescription("runInBackground", "If set to 1, Splash will run in the background (useful for background processing)");
+
+    addAttribute("swapInterval",
+        [&](const Values& args) {
+            _swapInterval = max(-1, args[0].as<int>());
+            _targetFrameDuration = updateTargetFrameDuration();
+            return true;
+        },
+        [&]() -> Values { return {(int)_swapInterval}; },
+        {'n'});
+    setAttributeDescription("swapInterval", "Set the interval between two video frames. 1 is synced, 0 is not, -1 to sync when possible ");
+}
+
+/*************/
+void Scene::initializeTree()
+{
+    _tree.addCallbackToLeafAt("/world/attributes/masterClock",
+        [](const Value& value, const chrono::system_clock::time_point& /*timestamp*/) {
+            auto args = value.as<Values>();
+            Timer::Point clock;
+            clock.years = args[0].as<uint32_t>();
+            clock.months = args[1].as<uint32_t>();
+            clock.days = args[2].as<uint32_t>();
+            clock.hours = args[3].as<uint32_t>();
+            clock.mins = args[4].as<uint32_t>();
+            clock.secs = args[5].as<uint32_t>();
+            clock.frame = args[6].as<uint32_t>();
+            clock.paused = args[7].as<bool>();
+            Timer::get().setMasterClock(clock);
+        },
+        true);
+
+    _tree.setName(_name);
+    _tree.createBranchAt("/" + _name);
+    _tree.createBranchAt("/" + _name + "/attributes");
+    _tree.createBranchAt("/" + _name + "/commands");
+    _tree.createBranchAt("/" + _name + "/durations");
+    _tree.createBranchAt("/" + _name + "/logs");
+    _tree.createBranchAt("/" + _name + "/objects");
 }
 
 } // namespace Splash

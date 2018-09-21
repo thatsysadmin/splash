@@ -160,7 +160,10 @@ void Warp::render()
 
         if (_selectedControlPointIndex != -1)
         {
-            auto& pointModel = _models["3d_marker"];
+            auto scene = dynamic_cast<Scene*>(_root);
+            assert(scene != nullptr);
+
+            auto pointModel = scene->getObjectLibrary().getModel("3d_marker");
 
             auto controlPoints = _screenMesh->getControlPoints();
             auto point = controlPoints[_selectedControlPointIndex];
@@ -179,6 +182,13 @@ void Warp::render()
     _fbo->unbindDraw();
 
     _fbo->getColorTexture()->generateMipmap();
+    if (_grabMipmapLevel >= 0)
+    {
+        auto colorTexture = _fbo->getColorTexture();
+        _mipmapBuffer = colorTexture->grabMipmap(_grabMipmapLevel).getRawBuffer();
+        auto spec = colorTexture->getSpec();
+        _mipmapBufferSpec = {spec.width, spec.height, spec.channels, spec.bpp, spec.format};
+    }
 }
 
 /*************/
@@ -215,41 +225,18 @@ void Warp::loadDefaultModels()
 {
     map<string, string> files{{"3d_marker", "3d_marker.obj"}};
 
+    auto scene = dynamic_cast<Scene*>(_root);
+    assert(scene != nullptr);
+
     for (auto& file : files)
     {
-        if (!ifstream(file.second, ios::in | ios::binary))
-        {
-            if (ifstream(string(DATADIR) + file.second, ios::in | ios::binary))
-                file.second = string(DATADIR) + file.second;
-#if HAVE_OSX
-            else if (ifstream("../Resources/" + file.second, ios::in | ios::binary))
-                file.second = "../Resources/" + file.second;
-#endif
-            else
-            {
-                Log::get() << Log::WARNING << "Warp::" << __FUNCTION__ << " - File " << file.second << " does not seem to be readable." << Log::endl;
-                exit(1);
-            }
-        }
+        if (!scene->getObjectLibrary().loadModel(file.first, file.second))
+            continue;
 
-        shared_ptr<Mesh> mesh = make_shared<Mesh>(_root);
-        mesh->setName(file.first);
-        mesh->setAttribute("file", {file.second});
-        _modelMeshes.push_back(mesh);
+        auto object = scene->getObjectLibrary().getModel(file.first);
+        assert(object != nullptr);
 
-        auto geom = make_shared<Geometry>(_root);
-        geom->setName(file.first);
-        geom->linkTo(mesh);
-        _modelGeometries.push_back(geom);
-
-        shared_ptr<Object> obj = make_shared<Object>(_root);
-        obj->setName(file.first);
-        obj->setAttribute("scale", {WORLDMARKER_SCALE});
-        obj->setAttribute("fill", {"color"});
-        obj->setAttribute("color", MARKER_SET);
-        obj->linkTo(geom);
-
-        _models[file.first] = obj;
+        object->setAttribute("fill", {"color"});
     }
 }
 
@@ -361,6 +348,25 @@ void Warp::registerAttributes()
         },
         {'n'});
     setAttributeDescription("showControlPoint", "Show the control point given its index");
+
+    //
+    // Mipmap capture
+    addAttribute("grabMipmapLevel",
+        [&](const Values& args) {
+            _grabMipmapLevel = args[0].as<int>();
+            return true;
+        },
+        [&]() -> Values { return {_grabMipmapLevel}; },
+        {'n'});
+    setAttributeDescription("grabMipmapLevel", "If set to 0 or superior, sync the rendered texture to the 'buffer' attribute, at the given mipmap level");
+
+    addAttribute("buffer", [&](const Values&) { return true; }, [&]() -> Values { return {_mipmapBuffer}; }, {});
+    setAttributeDescription("buffer", "Getter attribute which gives access to the mipmap image, if grabMipmapLevel is greater or equal to 0");
+    setAttributeParameter("buffer", false);
+
+    addAttribute("bufferSpec", [&](const Values&) { return true; }, [&]() -> Values { return _mipmapBufferSpec; }, {});
+    setAttributeDescription("bufferSpec", "Getter attribute to the specs of the attribute buffer");
+    setAttributeParameter("bufferSpec", false);
 }
 
 } // end of namespace

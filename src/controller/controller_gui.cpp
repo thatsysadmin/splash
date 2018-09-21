@@ -12,6 +12,7 @@
 #include "./controller/widget/widget_node_view.h"
 #include "./controller/widget/widget_text_box.h"
 #include "./controller/widget/widget_textures_view.h"
+#include "./controller/widget/widget_tree.h"
 #include "./controller/widget/widget_warp.h"
 #include "./core/scene.h"
 #include "./graphics/camera.h"
@@ -62,7 +63,6 @@ Gui::Gui(shared_ptr<GlWindow> w, RootObject* s)
 
     // Create the default GUI camera
     _guiCamera = make_shared<Camera>(s);
-    _guiCamera->setName("guiCamera");
     _guiCamera->setAttribute("eye", {2.0, 2.0, 0.0});
     _guiCamera->setAttribute("target", {0.0, 0.0, 0.5});
     _guiCamera->setAttribute("size", {640, 480});
@@ -156,7 +156,7 @@ void Gui::computeBlending(bool once)
 /*************/
 void Gui::activateLUT()
 {
-    auto cameras = getObjectsOfType("camera");
+    auto cameras = getObjectsPtr(getObjectsOfType("camera"));
     for (auto& cam : cameras)
     {
         setObjectAttribute(cam->getName(), "activateColorLUT", {2});
@@ -1091,86 +1091,88 @@ void Gui::initImWidgets()
 
     // FPS and timings
     auto timingBox = make_shared<GuiTextBox>(_scene, "Timings");
-    timingBox->setTextFunc([]() {
-        // Smooth the values
-        static float sce{0.f};
-        static float wrl{0.f};
-        static float fps{0.f};
-        static float worldFps{0.f};
-        static float upl{0.f};
-        static float tex{0.f};
-        static float ble{0.f};
-        static float flt{0.f};
-        static float cam{0.f};
-        static float wrp{0.f};
-        static float gui{0.f};
-        static float win{0.f};
-        static float buf{0.f};
-        static float evt{0.f};
-
-        sce = sce * 0.9 + Timer::get()["loop_scene"] * 0.001 * 0.1;
-        wrl = wrl * 0.9 + Timer::get()["loop_world"] * 0.001 * 0.1;
-        fps = 1e3 / std::max(1.f, sce);
-        worldFps = 1e3 / std::max(1.f, wrl);
-        upl = upl * 0.9 + Timer::get()["upload"] * 0.001 * 0.1;
-        tex = tex * 0.9 + Timer::get()["textureUpload"] * 0.001 * 0.1;
-        ble = ble * 0.9 + Timer::get()["blender"] * 0.001 * 0.1;
-        flt = flt * 0.9 + Timer::get()["filter"] * 0.001 * 0.1;
-        cam = cam * 0.9 + Timer::get()["camera"] * 0.001 * 0.1;
-        wrp = wrp * 0.9 + Timer::get()["warp"] * 0.001 * 0.1;
-        gui = gui * 0.9 + Timer::get()["gui"] * 0.001 * 0.1;
-        win = win * 0.9 + Timer::get()["window"] * 0.001 * 0.1;
-        buf = buf * 0.9 + Timer::get()["swap"] * 0.001 * 0.1;
-        evt = evt * 0.9 + Timer::get()["events"] * 0.001 * 0.1;
-
-        // Create the text message
+    timingBox->setTextFunc([this]() {
+        static unordered_map<string, float> stats;
         ostringstream stream;
-        Timer::Point clock;
-        if (Timer::get().getMasterClock(clock))
+        auto tree = _root->getTree();
+
+        // Master clock
         {
-            stream << "Master clock: " << clock.years << "/" << clock.months << "/" << clock.days << " - " << clock.hours << ":" << clock.mins << ":" << clock.secs << ":"
-                   << clock.frame;
-            if (clock.paused)
-                stream << " - Paused";
-            stream << "\n";
+            Value clock;
+            if (tree->getValueForLeafAt("/world/attributes/masterClock", clock))
+            {
+                if (clock.size() == 8)
+                {
+                    stream << "Master clock:\n";
+                    stream << "  " << clock[0].as<int>() << "/" << clock[1].as<int>() << "/" << clock[2].as<int>();
+                    stream << " - ";
+                    stream << clock[3].as<int>() << ":" << clock[4].as<int>() << ":" << clock[5].as<int>() << ":" << clock[6].as<int>();
+                    if (clock[7].as<bool>())
+                        stream << " - Paused";
+                    stream << "\n";
+                }
+            }
         }
-        stream << "World:\n";
-        stream << "  World framerate: " << setprecision(4) << worldFps << " fps\n";
-        stream << "  Time per world frame: " << wrl << " ms\n";
-        stream << "  Sending buffers to Scenes: " << setprecision(4) << upl << " ms\n";
-        stream << "Rendering:\n";
-        stream << "  Rendering framerate: " << setprecision(4) << fps << " fps\n";
-        stream << "  Time per rendered frame: " << sce << " ms\n";
-        stream << "  Texture upload: " << setprecision(4) << tex << " ms\n";
-        stream << "  Blending computation: " << setprecision(4) << ble << " ms\n";
-        stream << "  Filters: " << setprecision(4) << flt << " ms\n";
-        stream << "  Cameras rendering: " << setprecision(4) << cam << " ms\n";
-        stream << "  Warps: " << setprecision(4) << wrp << " ms\n";
-        stream << "  GUI rendering: " << setprecision(4) << gui << " ms\n";
-        stream << "  Windows rendering: " << setprecision(4) << win << " ms\n";
-        stream << "  Swapping and events: " << setprecision(4) << buf << " ms\n";
+
+        auto runningAverage = [](float a, float b) { return a * 0.9 + 0.001 * b * 0.1; };
+        auto getLeafValue = [&](const string& path) {
+            Value value;
+            if (!tree->getValueForLeafAt(path, value))
+                return 0.f;
+            return value[0].as<float>();
+        };
+
+        // We process the world before the scenes
+        {
+            assert(tree->hasBranchAt("/world/durations"));
+
+            stats["world_loop_world"] = runningAverage(stats["world_loop_world"], getLeafValue("/world/durations/loop_world"));
+            stats["world_loop_world_fps"] = 1e3 / std::max(1.f, stats["world_loop_world"]);
+            stats["world_upload"] = runningAverage(stats["world_upload"], getLeafValue("/world/durations/upload"));
+
+            stream << "World:\n";
+            stream << "  World framerate: " << setprecision(4) << stats["world_loop_world_fps"] << " fps\n";
+            stream << "  Time per world frame: " << stats["world_loop_world"] << " ms\n";
+            stream << "  Sending buffers to Scenes: " << setprecision(4) << stats["world_upload"] << " ms\n";
+        }
+
+        // Then the scenes
+        stream << "Scenes:\n";
+        for (const auto& branchName : tree->getBranchList())
+        {
+            if (branchName == "world")
+                continue;
+            auto durationPath = "/" + branchName + "/durations";
+
+            stats[branchName + "_loop_scene"] = runningAverage(stats[branchName + "_loop_scene"], getLeafValue(durationPath + "/loop_scene"));
+            stats[branchName + "_loop_scene_fps"] = 1e3 / std::max(1.f, stats[branchName + "_loop_scene"]);
+            stats[branchName + "_textureUpload"] = runningAverage(stats[branchName + "_textureUpload"], getLeafValue(durationPath + "/textureUpload"));
+            stats[branchName + "_blender"] = runningAverage(stats[branchName + "_blender"], getLeafValue(durationPath + "/blender"));
+            stats[branchName + "_filter"] = runningAverage(stats[branchName + "_filter"], getLeafValue(durationPath + "/filter"));
+            stats[branchName + "_camera"] = runningAverage(stats[branchName + "_camera"], getLeafValue(durationPath + "/camera"));
+            stats[branchName + "_warp"] = runningAverage(stats[branchName + "_warp"], getLeafValue(durationPath + "/warp"));
+            stats[branchName + "_window"] = runningAverage(stats[branchName + "_window"], getLeafValue(durationPath + "/window"));
+            stats[branchName + "_swap"] = runningAverage(stats[branchName + "_swap"], getLeafValue(durationPath + "/swap"));
+            if (tree->hasLeafAt(durationPath + "/gui"))
+                stats[branchName + "_gui"] = runningAverage(stats[branchName + "_gui"], getLeafValue(durationPath + "/gui"));
+
+            stream << "- " + branchName + ":\n";
+            stream << "    Rendering framerate: " << setprecision(4) << stats[branchName + "_loop_scene_fps"] << " fps\n";
+            stream << "    Time per rendered frame: " << stats[branchName + "_loop_scene"] << " ms\n";
+            stream << "    Texture upload: " << setprecision(4) << stats[branchName + "_textureUpload"] << " ms\n";
+            stream << "    Blending computation: " << setprecision(4) << stats[branchName + "_blender"] << " ms\n";
+            stream << "    Filters: " << setprecision(4) << stats[branchName + "_filter"] << " ms\n";
+            stream << "    Cameras rendering: " << setprecision(4) << stats[branchName + "_camera"] << " ms\n";
+            stream << "    Warps: " << setprecision(4) << stats[branchName + "_warp"] << " ms\n";
+            stream << "    Windows rendering: " << setprecision(4) << stats[branchName + "_window"] << " ms\n";
+            stream << "    Swapping: " << setprecision(4) << stats[branchName + "_swap"] << " ms\n";
+            if (tree->hasLeafAt(durationPath + "/gui"))
+                stream << "    GUI rendering: " << setprecision(4) << stats[branchName + "_gui"] << " ms\n";
+        }
 
         return stream.str();
     });
     _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(timingBox));
-
-    // Log display
-    if (Log::get().getVerbosity() == Log::DEBUGGING)
-    {
-        auto logBox = make_shared<GuiTextBox>(_scene, "Logs");
-        logBox->setTextFunc([]() {
-            int nbrLines = 10;
-            // Convert the last lines of the text log
-            vector<string> logs = Log::get().getLogs(Log::MESSAGE, Log::WARNING, Log::ERROR, Log::DEBUGGING);
-            string text;
-            uint32_t start = std::max(0, static_cast<int>(logs.size()) - nbrLines);
-            for (uint32_t i = start; i < logs.size(); ++i)
-                text += logs[i] + string("\n");
-
-            return text;
-        });
-        _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(logBox));
-    }
 
     // Control
     auto controlView = make_shared<GuiControl>(_scene, "Controls");
@@ -1197,14 +1199,33 @@ void Gui::initImWidgets()
     auto warpControl = make_shared<GuiWarp>(_scene, "Warp");
     _guiWidgets.push_back(dynamic_pointer_cast<GuiWarp>(warpControl));
 
-    // Performance graph
     if (Log::get().getVerbosity() == Log::DEBUGGING)
     {
+        // Log display
+        auto logBox = make_shared<GuiTextBox>(_scene, "Logs");
+        logBox->setTextFunc([]() {
+            int nbrLines = 10;
+            // Convert the last lines of the text log
+            vector<string> logs = Log::get().getLogs(Log::MESSAGE, Log::WARNING, Log::ERROR, Log::DEBUGGING);
+            string text;
+            uint32_t start = std::max(0, static_cast<int>(logs.size()) - nbrLines);
+            for (uint32_t i = start; i < logs.size(); ++i)
+                text += logs[i] + string("\n");
+
+            return text;
+        });
+        _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(logBox));
+
+        // Performance graph
         auto perfGraph = make_shared<GuiGraph>(_scene, "Performance Graph");
         _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(perfGraph));
 
         auto texturesView = make_shared<GuiTexturesView>(_scene, "Textures");
         _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(texturesView));
+
+        // Tree view
+        auto treeView = make_shared<GuiTree>(_scene, "Tree view");
+        _guiWidgets.push_back(dynamic_pointer_cast<GuiWidget>(treeView));
     }
 }
 
@@ -1225,7 +1246,10 @@ void Gui::imGuiRenderDrawLists(ImDrawData* draw_data)
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
     const float orthoProjection[4][4] = {
-        {2.0f / width, 0.0f, 0.0f, 0.0f}, {0.0f, 2.0f / -height, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f, 1.0f},
+        {2.0f / width, 0.0f, 0.0f, 0.0f},
+        {0.0f, 2.0f / -height, 0.0f, 0.0f},
+        {0.0f, 0.0f, -1.0f, 0.0f},
+        {-1.0f, 1.0f, 0.0f, 1.0f},
     };
 
     glUseProgram(_imGuiShaderHandle);
@@ -1284,4 +1308,4 @@ void Gui::registerAttributes()
     setAttributeDescription("size", "Set the GUI render resolution");
 }
 
-} // end of namespace
+} // namespace Splash

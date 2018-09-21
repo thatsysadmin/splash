@@ -150,7 +150,7 @@ Values Factory::jsonToValues(const Json::Value& values)
 /*************/
 shared_ptr<GraphObject> Factory::create(const string& type)
 {
-    // Not all object types are listed here, only those which are available to the user are
+    // Not all object types are listed here, only those available to the user
     auto page = _objectBook.find(type);
     if (page != _objectBook.end())
     {
@@ -229,7 +229,9 @@ bool Factory::isProjectSavable(const string& type)
     auto it = _objectBook.find(type);
     if (it == _objectBook.end())
     {
+#ifdef DEBUG
         Log::get() << Log::DEBUGGING << "Factory::" << __FUNCTION__ << " - Object type " << type << " does not exist" << Log::endl;
+#endif
         return false;
     }
 

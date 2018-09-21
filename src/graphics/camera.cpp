@@ -743,6 +743,15 @@ void Camera::render()
         _outFbo->unbindDraw();
     }
 
+    if (_grabMipmapLevel >= 0)
+    {
+        auto colorTexture = _outFbo->getColorTexture();
+        colorTexture->generateMipmap();
+        _mipmapBuffer = colorTexture->grabMipmap(_grabMipmapLevel).getRawBuffer();
+        auto spec = colorTexture->getSpec();
+        _mipmapBufferSpec = {spec.width, spec.height, spec.channels, spec.bpp, spec.format};
+    }
+
 #ifdef DEBUG
     GLenum error = glGetError();
     if (error)
@@ -1001,7 +1010,9 @@ dmat4 Camera::computeViewMatrix()
 /*************/
 void Camera::loadDefaultModels()
 {
-    map<string, string> files{{"3d_marker", "3d_marker.obj"}, {"2d_marker", "2d_marker.obj"}, {"camera", "camera.obj"}, {"probe", "probe.obj"}};
+    auto datapath = string(DATADIR);
+    map<string, string> files{
+        {"3d_marker", datapath + "/3d_marker.obj"}, {"2d_marker", datapath + "/2d_marker.obj"}, {"camera", datapath + "/camera.obj"}, {"probe", datapath + "/probe.obj"}};
 
     auto scene = dynamic_cast<Scene*>(_root);
     assert(scene != nullptr);
@@ -1553,6 +1564,25 @@ void Camera::registerAttributes()
         },
         {'n'});
     setAttributeDescription("showCameraCount", "If set to 1, shows visually the camera count, encoded in binary in RGB (blending has to be activated)");
+
+    //
+    // Mipmap capture
+    addAttribute("grabMipmapLevel",
+        [&](const Values& args) {
+            _grabMipmapLevel = args[0].as<int>();
+            return true;
+        },
+        [&]() -> Values { return {_grabMipmapLevel}; },
+        {'n'});
+    setAttributeDescription("grabMipmapLevel", "If set to 0 or superior, sync the rendered texture to the 'buffer' attribute, at the given mipmap level");
+
+    addAttribute("buffer", [&](const Values&) { return true; }, [&]() -> Values { return {_mipmapBuffer}; }, {});
+    setAttributeDescription("buffer", "Getter attribute which gives access to the mipmap image, if grabMipmapLevel is greater or equal to 0");
+    setAttributeParameter("buffer", false);
+
+    addAttribute("bufferSpec", [&](const Values&) { return true; }, [&]() -> Values { return _mipmapBufferSpec; }, {});
+    setAttributeDescription("bufferSpec", "Getter attribute to the specs of the attribute buffer");
+    setAttributeParameter("bufferSpec", false);
 
     //
     // Various options

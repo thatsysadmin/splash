@@ -145,16 +145,18 @@ bool Image_GPhoto::capture()
             if (handle != -1)
             {
                 gp_file_new_from_fd(&destination, handle);
-                if (gp_camera_file_get(camera.cam, filePath.folder, filePath.name, GP_FILE_TYPE_NORMAL, destination, _gpContext) == GP_OK)
-                {
-                    Log::get() << Log::DEBUGGING << "Image_GPhoto::" << __FUNCTION__ << " - Sucessfully downloaded file " << string(filePath.folder) << "/" << string(filePath.name)
-                               << Log::endl;
-                }
-                else
+                if (!gp_camera_file_get(camera.cam, filePath.folder, filePath.name, GP_FILE_TYPE_NORMAL, destination, _gpContext) == GP_OK)
                 {
                     Log::get() << Log::WARNING << "Image_GPhoto::" << __FUNCTION__ << " - Unable to download file " << string(filePath.folder) << "/" << string(filePath.name)
                                << Log::endl;
                 }
+#ifdef DEBUG
+                else
+                {
+                    Log::get() << Log::DEBUGGING << "Image_GPhoto::" << __FUNCTION__ << " - Sucessfully downloaded file " << string(filePath.folder) << "/" << string(filePath.name)
+                               << Log::endl;
+                }
+#endif
                 close(handle);
             }
 
@@ -411,7 +413,7 @@ void Image_GPhoto::registerAttributes()
         [&]() -> Values { return {_cooldownTime}; },
         {'n'});
     setAttributeDescription("cooldown", "Cooldown after a capture, some cameras need some rest before changing parameters");
-    setAttributeParameter("cooldown", true, true);
+    setAttributeParameter("cooldown", true);
 
     addAttribute("aperture",
         [&](const Values& args) { return doSetProperty("aperture", args[0].as<string>()); },
@@ -424,7 +426,7 @@ void Image_GPhoto::registerAttributes()
         },
         {});
     setAttributeDescription("aperture", "Set the aperture of the lens");
-    setAttributeParameter("aperture", true, true);
+    setAttributeParameter("aperture", true);
 
     addAttribute("isospeed",
         [&](const Values& args) { return doSetProperty("iso", args[0].as<string>()); },
@@ -437,7 +439,7 @@ void Image_GPhoto::registerAttributes()
         },
         {});
     setAttributeDescription("isospeed", "Set the ISO value of the camera");
-    setAttributeParameter("isospeed", true, true);
+    setAttributeParameter("isospeed", true);
 
     addAttribute("shutterspeed",
         [&](const Values& args) {
@@ -452,7 +454,7 @@ void Image_GPhoto::registerAttributes()
         },
         {});
     setAttributeDescription("shutterspeed", "Set the camera shutter speed");
-    setAttributeParameter("shutterspeed", true, true);
+    setAttributeParameter("shutterspeed", true);
 
     // Actions
     addAttribute("capture", [&](const Values&) {

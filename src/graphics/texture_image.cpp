@@ -13,6 +13,8 @@ using namespace std;
 namespace Splash
 {
 
+constexpr int Texture_Image::_texLevels;
+
 /*************/
 Texture_Image::Texture_Image(RootObject* root)
     : Texture(root)
@@ -94,6 +96,23 @@ RgbValue Texture_Image::getMeanValue() const
 }
 
 /*************/
+ImageBuffer Texture_Image::grabMipmap(unsigned int level) const
+{
+    int mipmapLevel = std::min<int>(level, _texLevels);
+    GLint width, height;
+    glGetTextureLevelParameteriv(_glTex, level, GL_TEXTURE_WIDTH, &width);
+    glGetTextureLevelParameteriv(_glTex, level, GL_TEXTURE_HEIGHT, &height);
+
+    auto spec = _spec;
+    spec.width = width;
+    spec.height = height;
+
+    auto image = ImageBuffer(spec);
+    glGetTextureImage(_glTex, mipmapLevel, _texFormat, _texType, image.getSize(), image.data());
+    return image;
+}
+
+/*************/
 bool Texture_Image::linkTo(const std::shared_ptr<GraphObject>& obj)
 {
     // Mandatory before trying to link
@@ -124,7 +143,9 @@ void Texture_Image::reset(int width, int height, const string& pixelFormat, cons
 {
     if (width == 0 || height == 0)
     {
+#ifdef DEBUG
         Log::get() << Log::DEBUGGING << "Texture_Image::" << __FUNCTION__ << " - Texture size is null" << Log::endl;
+#endif
         return;
     }
 

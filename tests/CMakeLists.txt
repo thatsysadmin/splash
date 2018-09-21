@@ -64,8 +64,10 @@ target_sources(unitTests PRIVATE
     check_attributefunctor.cpp
     check_base_object.cpp
     check_resizablearray.cpp
-    check_value.cpp
+    check_serialization.cpp
+    check_tree.cpp
     check_upgrade_configuration.cpp
+    check_value.cpp
 )
 
 # Unit tests (executed through 'make check')

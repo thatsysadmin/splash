@@ -48,6 +48,13 @@ set(DEBUG_OPENGL OFF CACHE BOOL "Enable OpenGL debugging")
 set(PROFILE_OPENGL OFF CACHE BOOL "Enable OpenGL profiling")
 set(USE_SYSTEM_LIBS OFF CACHE BOOL "Enable using system libraries instead of bundle ones")
 
+# Force color output (useful when building with Ninja)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   add_compile_options (-fdiagnostics-color=always)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+   add_compile_options (-fcolor-diagnostics)
+endif ()
+
 #
 # Find the various libraries
 #
@@ -61,6 +68,7 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(GSL REQUIRED gsl)
 pkg_search_module(ZMQ REQUIRED libzmq)
 pkg_check_modules(FFMPEG REQUIRED libavformat libavcodec libavutil libswscale)
+pkg_check_modules(UUID REQUIRED uuid)
 
 # Optional dependencies
 if(UNIX AND NOT APPLE)
@@ -228,8 +236,6 @@ info_cfg_option(FFMPEG_libswscale_VERSION)
 info_cfg_option(OPENCV_VERSION)
 info_cfg_option(PORTAUDIO_VERSION)
 info_cfg_option(JACK_VERSION)
-info_cfg_option(JACK_LIBRARIES)
-info_cfg_option(HAVE_JACK)
 info_cfg_option(PYTHONLIBS_VERSION_STRING)
 info_cfg_option(SHMDATA_VERSION)
 info_cfg_option(ZMQ_VERSION)

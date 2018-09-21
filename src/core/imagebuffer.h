@@ -160,7 +160,7 @@ class ImageBuffer
      * \param data Pointer to initial data
      * \param map Use the data pointer as the buffer for this ImageBuffer
      */
-    ImageBuffer(const ImageBufferSpec& spec, char* data = nullptr, bool map = false);
+    ImageBuffer(const ImageBufferSpec& spec, uint8_t* data = nullptr, bool map = false);
 
     /**
      * \brief Destructor
@@ -176,7 +176,13 @@ class ImageBuffer
      * \brief Return a pointer to the image data
      * \return Return a pointer to the data
      */
-    char* data() const { return _mappedBuffer ? _mappedBuffer : _buffer.data(); }
+    uint8_t* data() const { return _mappedBuffer ? _mappedBuffer : _buffer.data(); }
+
+    /**
+     * Get a const reference to the inner buffer
+     * \return Return a const ref to the inner buffer
+     */
+    const ResizableArray<uint8_t>& getRawBuffer() const { return _buffer; }
 
     /**
      * \brief Get the image spec
@@ -200,7 +206,7 @@ class ImageBuffer
      * \brief Set the inner raw buffer, to use with caution, its size must match the spec
      * \param buffer Buffer to use as inner buffer
      */
-    void setRawBuffer(ResizableArray<char>&& buffer)
+    void setRawBuffer(ResizableArray<uint8_t>&& buffer)
     {
         if (!_mappedBuffer)
             _buffer = buffer;
@@ -208,8 +214,8 @@ class ImageBuffer
 
   private:
     ImageBufferSpec _spec{};
-    ResizableArray<char> _buffer{};
-    char* _mappedBuffer{nullptr};
+    ResizableArray<uint8_t> _buffer;
+    uint8_t* _mappedBuffer{nullptr};
 };
 
 } // namespace Splash

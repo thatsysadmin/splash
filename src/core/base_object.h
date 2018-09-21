@@ -42,7 +42,7 @@ namespace Splash
 {
 
 /*************/
-class BaseObject
+class BaseObject : public std::enable_shared_from_this<BaseObject>
 {
   public:
     /**
@@ -59,7 +59,7 @@ class BaseObject
      * \brief Set the name of the object.
      * \param name name of the object.
      */
-    inline void setName(const std::string& name) { _name = name; }
+    virtual void setName(const std::string& name) { _name = name; }
 
     /**
      * \brief Get the name of the object.
@@ -79,32 +79,9 @@ class BaseObject
      * \brief Get the specified attribute
      * \param attrib Attribute name
      * \param args Values object which will hold the attribute values
-     * \param includeDistant Return true even if the attribute is distant
-     * \param includeNonSavable Return true even if the attribute is not savable
      * \return Return true if the parameter exists and is savable
      */
-    bool getAttribute(const std::string& attrib, Values& args, bool includeDistant = false, bool includeNonSavable = false) const;
-
-    /**
-     * \brief Get all the savable attributes as a map
-     * \param includeDistant Also include the distant attributes
-     * \return Return the map of all the attributes
-     */
-    std::unordered_map<std::string, Values> getAttributes(bool includeDistant = false) const;
-
-    /**
-     * \brief Converts a Value as a Json object
-     * \param values Value to convert
-     * \param asObject If true, return a Json object
-     * \return Returns a Json object
-     */
-    Json::Value getValuesAsJson(const Values& values, bool asObject = false) const;
-
-    /**
-     * \brief Get the object's configuration as a Json object
-     * \return Returns a Json object
-     */
-    virtual Json::Value getConfigurationAsJson() const;
+    bool getAttribute(const std::string& attrib, Values& args) const;
 
     /**
      * \brief Get the description for the given attribute, if it exists
@@ -127,14 +104,29 @@ class BaseObject
     Attribute::Sync getAttributeSyncMethod(const std::string& name);
 
     /**
+     * Register a callback to any call to the setter
+     * \param attr Attribute to add a callback to
+     * \param cb Callback function
+     * \return Return a callback handle
+     */
+    CallbackHandle registerCallback(const std::string& attr, Attribute::Callback cb);
+
+    /**
+     * Unregister a callback
+     * \param handle A handle to the callback to remove
+     * \return True if the callback has been successfully removed
+     */
+    bool unregisterCallback(const CallbackHandle& handle);
+
+    /**
      * Run the tasks waiting in the object's queue
      */
     virtual void runTasks();
 
   protected:
-    std::string _name{""};                                              //!< Object name
+    std::string _name{""};                                       //!< Object name
     std::unordered_map<std::string, Attribute> _attribFunctions; //!< Map of all attributes
-    bool _updatedParams{true};                                          //!< True if the parameters have been updated and the object needs to reflect these changes
+    bool _updatedParams{true};                                   //!< True if the parameters have been updated and the object needs to reflect these changes
 
     std::future<void> _asyncTask{};
     std::mutex _asyncTaskMutex{};
@@ -155,7 +147,7 @@ class BaseObject
      * \param types Vector of char holding the expected parameters for the set function
      * \return Return a reference to the created attribute
      */
-    Attribute& addAttribute(const std::string& name, const std::function<bool(const Values&)>& set, const std::vector<char>& types = {});
+    virtual Attribute& addAttribute(const std::string& name, const std::function<bool(const Values&)>& set, const std::vector<char>& types = {});
 
     /**
      * \brief Add a new attribute to this object
@@ -165,8 +157,7 @@ class BaseObject
      * \param types Vector of char holding the expected parameters for the set function
      * \return Return a reference to the created attribute
      */
-    Attribute& addAttribute(
-        const std::string& name, const std::function<bool(const Values&)>& set, const std::function<const Values()>& get, const std::vector<char>& types = {});
+    virtual Attribute& addAttribute(const std::string& name, const std::function<bool(const Values&)>& set, const std::function<const Values()>& get, const std::vector<char>& types = {});
 
     /**
      * Run a task asynchronously, one task at a time
@@ -197,9 +188,8 @@ class BaseObject
      * \brief Set additional parameters for a given attribute
      * \param name Attribute name
      * \param savable Savability
-     * \param updateDistant If true and the object has a World as root, updates the attribute of the corresponding Scene object
      */
-    void setAttributeParameter(const std::string& name, bool savable, bool updateDistant);
+    void setAttributeParameter(const std::string& name, bool savable);
 
     /**
      * \brief Register new attributes

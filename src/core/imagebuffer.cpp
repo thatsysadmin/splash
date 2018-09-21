@@ -103,7 +103,7 @@ void ImageBufferSpec::from_string(const string& spec)
 }
 
 /*************/
-ImageBuffer::ImageBuffer(const ImageBufferSpec& spec, char* data, bool map)
+ImageBuffer::ImageBuffer(const ImageBufferSpec& spec, uint8_t* data, bool map)
 {
     assert(data || (!data && !map));
     _spec = spec;
@@ -116,7 +116,7 @@ ImageBuffer::ImageBuffer(const ImageBufferSpec& spec, char* data, bool map)
     {
         auto size = spec.width * spec.height * spec.pixelBytes();
         if (data)
-            _buffer = ResizableArray<char>(data, data + size);
+            _buffer = ResizableArray<uint8_t>(data, data + size);
         else
             _buffer.resize(size);
     }

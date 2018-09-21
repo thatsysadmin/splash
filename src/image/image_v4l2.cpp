@@ -404,7 +404,7 @@ bool Image_V4L2::initializeCapture()
                 return false;
             }
 
-            _imageBuffers.push_back(make_unique<ImageBuffer>(_spec, static_cast<char*>(mappedMemory), true));
+            _imageBuffers.push_back(make_unique<ImageBuffer>(_spec, static_cast<uint8_t*>(mappedMemory), true));
 
             result = xioctl(_deviceFd, VIDIOC_QBUF, &buffer);
             if (result < 0)
@@ -740,7 +740,7 @@ void Image_V4L2::registerAttributes()
         },
         [&]() -> Values { return {(int)_autosetResolution}; },
         {'n'});
-    setAttributeParameter("autosetResolution", true, true);
+    setAttributeParameter("autosetResolution", true);
 
     addAttribute("doCapture",
         [&](const Values& args) {
@@ -753,7 +753,7 @@ void Image_V4L2::registerAttributes()
         },
         [&]() -> Values { return {(int)_capturing}; },
         {'n'});
-    setAttributeParameter("doCapture", true, true);
+    setAttributeParameter("doCapture", true);
 
     addAttribute("captureSize",
         [&](const Values& args) {
@@ -773,7 +773,7 @@ void Image_V4L2::registerAttributes()
             return {_outputWidth, _outputHeight};
         },
         {'n', 'n'});
-    setAttributeParameter("captureSize", true, true);
+    setAttributeParameter("captureSize", true);
 
     addAttribute("device",
         [&](const Values& args) {
@@ -815,7 +815,7 @@ void Image_V4L2::registerAttributes()
         },
         [&]() -> Values { return {_devicePath}; },
         {'s'});
-    setAttributeParameter("device", true, true);
+    setAttributeParameter("device", true);
 
     addAttribute("index",
         [&](const Values& args) {
@@ -829,11 +829,11 @@ void Image_V4L2::registerAttributes()
         },
         [&]() -> Values { return {_v4l2Index}; },
         {'n'});
-    setAttributeParameter("index", true, true);
+    setAttributeParameter("index", true);
     setAttributeDescription("index", "Set the input index for the selected V4L2 capture device");
 
     addAttribute("sourceFormat", [&](const Values&) { return true; }, [&]() -> Values { return {_sourceFormatAsString}; }, {});
-    setAttributeParameter("sourceFormat", true, true);
+    setAttributeParameter("sourceFormat", true);
 
     addAttribute("pixelFormat",
         [&](const Values& args) {
@@ -842,11 +842,11 @@ void Image_V4L2::registerAttributes()
                 stopCapture();
 
             auto format = args[0].as<string>();
-            if (format == "RGB")
+            if (format.find("RGB") != string::npos)
                 _outputPixelFormat = V4L2_PIX_FMT_RGB24;
-            else if (format == "BGR")
+            else if (format.find("BGR") != string::npos)
                 _outputPixelFormat = V4L2_PIX_FMT_BGR24;
-            else if (format == "YUYV")
+            else if (format.find("YUYV") != string::npos)
                 _outputPixelFormat = V4L2_PIX_FMT_YUYV;
             else
                 _outputPixelFormat = V4L2_PIX_FMT_RGB24;
@@ -876,7 +876,7 @@ void Image_V4L2::registerAttributes()
             return {format};
         },
         {'s'});
-    setAttributeParameter("pixelFormat", true, true);
+    setAttributeParameter("pixelFormat", true);
     setAttributeDescription("pixelFormat", "Set the desired output format, either RGB or YUYV");
 }
 

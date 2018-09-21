@@ -39,7 +39,7 @@ bool BaseObject::setAttribute(const string& attrib, const Values& args)
 }
 
 /*************/
-bool BaseObject::getAttribute(const string& attrib, Values& args, bool includeDistant, bool includeNonSavable) const
+bool BaseObject::getAttribute(const string& attrib, Values& args) const
 {
     auto attribFunction = _attribFunctions.find(attrib);
     if (attribFunction == _attribFunctions.end())
@@ -50,109 +50,7 @@ bool BaseObject::getAttribute(const string& attrib, Values& args, bool includeDi
 
     args = attribFunction->second();
 
-    if ((!attribFunction->second.savable() && !includeNonSavable) || (attribFunction->second.isDefault() && !includeDistant))
-        return false;
-
     return true;
-}
-
-/*************/
-unordered_map<string, Values> BaseObject::getAttributes(bool includeDistant) const
-{
-    unordered_map<string, Values> attribs;
-    for (auto& attr : _attribFunctions)
-    {
-        Values values;
-        if (getAttribute(attr.first, values, includeDistant, true) == false || values.size() == 0)
-            continue;
-        attribs[attr.first] = values;
-    }
-
-    return attribs;
-}
-
-/*************/
-Json::Value BaseObject::getValuesAsJson(const Values& values, bool asObject) const
-{
-    Json::Value jsValue;
-    if (asObject)
-    {
-        for (auto& v : values)
-        {
-            switch (v.getType())
-            {
-            default:
-                continue;
-            case Value::integer:
-                jsValue[v.getName()] = v.as<int>();
-                break;
-            case Value::real:
-                jsValue[v.getName()] = v.as<float>();
-                break;
-            case Value::string:
-                jsValue[v.getName()] = v.as<string>();
-                break;
-            case Value::values:
-            {
-                auto vv = v.as<Values>();
-                // If the first value is named, we treat it as a Json object
-                if (!vv.empty() && vv[0].isNamed())
-                    jsValue[v.getName()] = getValuesAsJson(vv, true);
-                else
-                    jsValue[v.getName()] = getValuesAsJson(vv, false);
-                break;
-            }
-            }
-        }
-    }
-    else
-    {
-        for (auto& v : values)
-        {
-            switch (v.getType())
-            {
-            default:
-                continue;
-            case Value::integer:
-                jsValue.append(v.as<int>());
-                break;
-            case Value::real:
-                jsValue.append(v.as<float>());
-                break;
-            case Value::string:
-                jsValue.append(v.as<string>());
-                break;
-            case Value::values:
-            {
-                auto vv = v.as<Values>();
-                // If the first value is named, we treat it as a Json object
-                if (!vv.empty() && vv[0].isNamed())
-                    jsValue.append(getValuesAsJson(vv, true));
-                else
-                    jsValue.append(getValuesAsJson(vv, false));
-                break;
-            }
-            }
-        }
-    }
-    return jsValue;
-}
-
-/*************/
-Json::Value BaseObject::getConfigurationAsJson() const
-{
-    Json::Value root;
-    for (auto& attr : _attribFunctions)
-    {
-        Values values;
-        if (getAttribute(attr.first, values) == false || values.size() == 0)
-            continue;
-
-        Json::Value jsValue;
-        jsValue = getValuesAsJson(values);
-        root[attr.first] = jsValue;
-    }
-    return root;
 }
 
 /*************/
@@ -234,14 +132,34 @@ void BaseObject::removeAttribute(const string& name)
 }
 
 /*************/
-void BaseObject::setAttributeParameter(const string& name, bool savable, bool updateDistant)
+void BaseObject::setAttributeParameter(const string& name, bool savable)
 {
     auto attr = _attribFunctions.find(name);
     if (attr != _attribFunctions.end())
-    {
         attr->second.savable(savable);
-        attr->second.doUpdateDistant(updateDistant);
-    }
+}
+
+/*************/
+CallbackHandle BaseObject::registerCallback(const string& attr, Attribute::Callback cb)
+{
+    auto attribute = _attribFunctions.find(attr);
+    if (attribute == _attribFunctions.end())
+        return CallbackHandle();
+
+    return attribute->second.registerCallback(shared_from_this(), cb);
+}
+
+/*************/
+bool BaseObject::unregisterCallback(const CallbackHandle& handle)
+{
+    if (!handle)
+        return false;
+
+    auto attribute = _attribFunctions.find(handle.getAttribute());
+    if (attribute == _attribFunctions.end())
+        return false;
+
+    return attribute->second.unregisterCallback(handle);
 }
 
 /*************/

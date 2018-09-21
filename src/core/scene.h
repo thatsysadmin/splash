@@ -83,40 +83,11 @@ class Scene : public RootObject
     void addGhost(const std::string& type, const std::string& name = "");
 
     /**
-     * \brief Get an attribute for the given object. Try locally and to the World
-     * \param name Object name
-     * \param attribute Attribute
-     * \return Return the attribute value
-     */
-    Values getAttributeFromObject(const std::string& name, const std::string& attribute);
-
-    /**
-     * \brief Get an attribute description. Try locally and to the World
-     * \param name Object name
-     * \param attribute Attribute
-     * \return Return the attribute description
-     */
-    Values getAttributeDescriptionFromObject(const std::string& name, const std::string& attribute);
-
-    /**
-     * \brief Get the current configuration of the scene as a json object
-     * \return Return a Json object holding the configuration
-     */
-    Json::Value getConfigurationAsJson();
-
-    /**
      * \brief Get a glfw window sharing the same context as _mainWindow
      * \param name Window name
      * \return Return a shared pointer to the new window
      */
     std::shared_ptr<GlWindow> getNewSharedWindow(const std::string& name = "");
-
-    /**
-     * \brief Get the list of objects by their type
-     * \param type Object type
-     * \return Return the list of objects of the given type
-     */
-    Values getObjectsNameByType(const std::string& type);
 
     /**
      * Get the found OpenGL version
@@ -317,6 +288,11 @@ class Scene : public RootObject
      * \brief Register new attributes
      */
     void registerAttributes();
+
+    /**
+     * Initialize the tree
+     */
+    void initializeTree();
 
     /**
      * \brief Update the various inputs (mouse, keyboard...)

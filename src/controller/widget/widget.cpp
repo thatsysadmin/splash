@@ -25,9 +25,6 @@
 #include "./controller/colorcalibrator.h"
 #endif
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-security"
-
 using namespace std;
 
 namespace Splash
@@ -238,6 +235,9 @@ void GuiWidget::drawAttributes(const string& objName, const unordered_map<string
 
     for (auto& attrName : attributeNames)
     {
+        if (find(_hiddenAttributes.begin(), _hiddenAttributes.end(), attrName) != _hiddenAttributes.end())
+            continue;
+
         const auto& attribute = attributes.find(attrName)->second;
         if (attribute.empty() || attribute.size() > 4)
             continue;
@@ -408,7 +408,5 @@ void GuiWidget::drawAttributes(const string& objName, const unordered_map<string
         }
     }
 }
-
-#pragma clang diagnostic pop
 
 } // end of namespace

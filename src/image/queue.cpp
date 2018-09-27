@@ -27,9 +27,7 @@ Queue::Queue(RootObject* root)
 }
 
 /*************/
-Queue::~Queue()
-{
-}
+Queue::~Queue() {}
 
 /*************/
 shared_ptr<SerializedObject> Queue::serialize() const
@@ -210,7 +208,7 @@ void Queue::cleanPlaylist(vector<Source>& playlist)
     {
         if (previousEnd < source.start)
         {
-            if (source.filename == "black")
+            if (!cleanList.empty() && source.filename == "black")
             {
                 if (cleanList.back().filename == "black")
                 {
@@ -222,7 +220,7 @@ void Queue::cleanPlaylist(vector<Source>& playlist)
                     cleanList.back().start = previousEnd;
                 }
             }
-            else if (cleanList.size() > 0 && cleanList.back().filename == "black")
+            else if (!cleanList.empty() && cleanList.back().filename == "black")
             {
                 cleanList.back().stop = source.start;
                 cleanList.push_back(source);
@@ -300,7 +298,7 @@ void Queue::registerAttributes()
     addAttribute("playlist",
         [&](const Values& args) {
             lock_guard<mutex> lock(_playlistMutex);
-            _playlist.clear();
+            vector<Source> playlist;
 
             for (auto& it : args)
             {
@@ -316,7 +314,10 @@ void Queue::registerAttributes()
                     source.freeRun = src[4].as<bool>();
                     source.args = src[5].as<Values>();
 
-                    _playlist.push_back(source);
+                    if (source.start > source.stop)
+                        return false;
+
+                    playlist.push_back(source);
                 }
                 else
                 {
@@ -324,7 +325,8 @@ void Queue::registerAttributes()
                 }
             }
 
-            cleanPlaylist(_playlist);
+            cleanPlaylist(playlist);
+            _playlist = playlist;
 
             return true;
         },
@@ -350,14 +352,17 @@ void Queue::registerAttributes()
     setAttributeParameter("playlist", true);
     setAttributeDescription("playlist", "Set the playlist as an array of [type, filename, start, end, (args)]");
 
+    addAttribute("elapsed", [&](const Values& /*args*/) { return true; }, [&]() -> Values { return {static_cast<float>(_currentTime / 1e6)}; }, {'n'});
+    setAttributeDescription("elapsed", "Time elapsed since the beginning of the queue");
+
     addAttribute("seek",
         [&](const Values& args) {
-            int64_t seekTime = args[0].as<float>() * 1e6;
-            _startTime = Timer::getTime() - seekTime;
+            _seekTime = args[0].as<float>();
+            _startTime = Timer::getTime() - static_cast<int64_t>(_seekTime * 1e6);
             _seeked = true;
             return true;
         },
-        [&]() -> Values { return {(float)_currentTime / 1e6}; },
+        [&]() -> Values { return {_seekTime}; },
         {'n'});
     setAttributeParameter("seek", false);
     setAttributeDescription("seek", "Seek through the playlist");
@@ -470,4 +475,4 @@ void QueueSurrogate::registerAttributes()
     });
 }
 
-} // end of namespace
+} // namespace Splash

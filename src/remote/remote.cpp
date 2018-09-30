@@ -10,6 +10,13 @@
 #define GLFW_INCLUDE_ES3
 #include <GLFW/glfw3.h>
 
+#include "./core/coretypes.h"
+#include "./network/websocket_client.h"
+
+// TODO: clean things up on quitting
+// TODO: add support for keyboard
+// TODO: improve support for mouse, especially supported multiple mouse buttons at at time
+
 using namespace std;
 
 static GLint _imGuiShaderHandle, _imGuiVertHandle, _imGuiFragHandle;
@@ -22,6 +29,8 @@ static GLuint _imGuiVaoHandle;
 static GLuint _imGuiVboHandle;
 static GLuint _imGuiElementsHandle;
 static GLuint _imFontTextureId;
+
+Splash::WebSocketClient _websocketClient;
 
 GLFWwindow* _window{nullptr};
 double _mouseX, _mouseY;
@@ -257,6 +266,12 @@ bool imguiInit()
 }
 
 /**************/
+bool networkInit()
+{
+    return _websocketClient.connect("127.0.0.1", 1111);
+}
+
+/**************/
 void main_loop()
 {
     auto& io = ImGui::GetIO();
@@ -306,6 +321,12 @@ void main_loop()
 /*************/
 int main()
 {
+    if (!networkInit())
+    {
+        cout << "Error while initializing network connection" << endl;
+        return 1;
+    }
+
     if (!glfwInit())
     {
         cout << "Error while initializing GLFW" << endl;

@@ -87,6 +87,7 @@ test:emscripten:
   stage: test
   image: ubuntu:18.04
   script:
+    - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     - make remote-webasm
 
 #

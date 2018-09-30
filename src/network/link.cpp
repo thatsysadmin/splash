@@ -1,4 +1,4 @@
-#include "./core/link.h"
+#include "./network/link.h"
 
 #include <algorithm>
 #include <chrono>

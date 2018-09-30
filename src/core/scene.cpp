@@ -5,7 +5,6 @@
 
 #include "./controller/controller_blender.h"
 #include "./controller/controller_gui.h"
-#include "./core/link.h"
 #include "./graphics/camera.h"
 #include "./graphics/filter.h"
 #include "./graphics/geometry.h"
@@ -18,6 +17,7 @@
 #include "./image/image.h"
 #include "./image/queue.h"
 #include "./mesh/mesh.h"
+#include "./network/link.h"
 #include "./userinput/userinput_dragndrop.h"
 #include "./userinput/userinput_joystick.h"
 #include "./userinput/userinput_keyboard.h"

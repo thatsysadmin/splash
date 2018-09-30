@@ -39,6 +39,7 @@
 
 #include "./config.h"
 
+#include "./core/value.h"
 #include "./core/spinlock.h"
 #include "./core/value.h"
 

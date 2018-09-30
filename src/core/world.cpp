@@ -12,12 +12,12 @@
 #include <utility>
 
 #include "./core/buffer_object.h"
-#include "./core/link.h"
 #include "./core/scene.h"
 #include "./core/serializer.h"
 #include "./image/image.h"
 #include "./image/queue.h"
 #include "./mesh/mesh.h"
+#include "./network/link.h"
 #include "./utils/jsonutils.h"
 #include "./utils/log.h"
 #include "./utils/osutils.h"

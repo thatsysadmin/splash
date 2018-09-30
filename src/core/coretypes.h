@@ -34,18 +34,22 @@
 #define SPLASH_FILE_PROJECT "splashProject"
 
 #include <iostream>
+
+#if not EMSCRIPTEN
 #include <execinfo.h>
 
 // clang-format off
 #include "./glad/glad.h"
 #include <GLFW/glfw3.h>
 // clang-format on
+#endif
 
 #ifndef SPLASH_CORETYPES_H
 #define SPLASH_CORETYPES_H
 
 #define PRINT_FUNCTION_LINE std::cout << "------> " << __PRETTY_FUNCTION__ << "::" << __LINE__ << std::endl;
 
+#if not EMSCRIPTEN
 #define PRINT_CALL_STACK                                                                                                                                                           \
     {                                                                                                                                                                              \
         int j, nptrs;                                                                                                                                                              \
@@ -60,6 +64,7 @@
                                                                                                                                                                                    \
         free(strings);                                                                                                                                                             \
     }
+#endif
 
 namespace Splash
 {

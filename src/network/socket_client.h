@@ -18,12 +18,13 @@
  */
 
 /*
- * @socket-link.h
- * The WebSocketClient class, used for communication through Websocket
+ * @socket_client.h
+ * The SocketClient class, used for communication through POSIX sockets
+ * Note that when compiled with Emscripten, the backend is websocket
  */
 
-#ifndef SPLASH_SOCKET_LINK_H
-#define SPLASH_SOCKET_LINK_H
+#ifndef SPLASH_SOCKETCLIENT_H
+#define SPLASH_SOCKETCLIENT_H
 
 #include <string>
 #include <sys/socket.h>
@@ -35,18 +36,18 @@ namespace Splash
 {
 
 /*************/
-class WebSocketClient
+class SocketClient
 {
   public:
     /**
      * Constructor
      */
-    WebSocketClient();
+    SocketClient();
 
     /**
      * Destructor
      */
-    ~WebSocketClient();
+    ~SocketClient();
 
     /**
      * Connect to the given host
@@ -66,11 +67,13 @@ class WebSocketClient
     /**
      * Read a message from the link
      * \param buffer Read buffer
+     * \param timeout Timeout for reading a buffer
      * \return Return true if a buffer was read
      */
-    bool receive(ResizableArray<uint8_t>& buffer);
+    bool receive(ResizableArray<uint8_t>& buffer, int timeout = 0);
 
   private:
+    bool _connected{false};
     int _sockfd{0};
     int _port{0};
     struct hostent* _server{nullptr};
@@ -78,4 +81,4 @@ class WebSocketClient
 
 } // namespace Splash
 
-#endif // SPLASH_SOCKET_LINK_H
+#endif // SPLASH_SOCKETCLIENT_H

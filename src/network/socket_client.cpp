@@ -1,4 +1,4 @@
-#include "./network/websocket_client.h"
+#include "./network/socket_client.h"
 
 #include <chrono>
 #include <netdb.h>
@@ -15,17 +15,17 @@ namespace Splash
 {
 
 /*************/
-WebSocketClient::WebSocketClient() {}
+SocketClient::SocketClient() {}
 
 /*************/
-WebSocketClient::~WebSocketClient()
+SocketClient::~SocketClient()
 {
     if (_sockfd)
         close(_sockfd);
 }
 
 /*************/
-bool WebSocketClient::connect(const string& host, int port)
+bool SocketClient::connect(const string& host, int port)
 {
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (_sockfd < 0)
@@ -63,18 +63,42 @@ bool WebSocketClient::connect(const string& host, int port)
     }
 
     freeaddrinfo(infoptr);
+    _connected = true;
     return true;
 }
 
 /*************/
-bool WebSocketClient::send(const ResizableArray<uint8_t>& /*buffer*/)
+bool SocketClient::send(const ResizableArray<uint8_t>& buffer)
 {
+    if (!_connected)
+        return false;
+
+    auto result = ::send(_sockfd, buffer.data(), buffer.size(), 0);
+    if (result == -1)
+        return false;
+
     return true;
 }
 
 /*************/
-bool WebSocketClient::receive(ResizableArray<uint8_t>& /*buffer*/)
+bool SocketClient::receive(ResizableArray<uint8_t>& buffer, int timeout)
 {
+    if (!_connected)
+        return false;
+
+    fd_set sockets;
+    FD_ZERO(&sockets);
+    FD_SET(_sockfd, &sockets);
+    timeval duration{0, timeout * 1000};
+    int result = select(_sockfd + 1, &sockets, nullptr, nullptr, &duration);
+    if (result <= 0)
+        return false;
+
+    auto length = recv(_sockfd, buffer.data(), buffer.size(), 0);
+    if (length <= 0)
+        return false;
+
+    buffer.resize(length);
     return true;
 }
 

@@ -65,6 +65,7 @@ void World::run()
         return;
     }
 
+    _websocketServer.start();
     applyConfig();
 
     while (true)

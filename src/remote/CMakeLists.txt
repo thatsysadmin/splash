@@ -50,7 +50,7 @@ include_directories(../../external/imgui)
 add_executable(remote-webasm remote.cpp)
 
 target_sources(remote-webasm PRIVATE
-    ../network/websocket_client.cpp
+    ../network/socket_client.cpp
     ../../external/imgui/imgui_demo.cpp
     ../../external/imgui/imgui_draw.cpp
     ../../external/imgui/imgui.cpp

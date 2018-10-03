@@ -157,7 +157,6 @@ target_sources(splash-${API_VERSION} PRIVATE
     mesh/mesh.cpp
     mesh/mesh_bezierpatch.cpp
     network/link.cpp
-    network/websocket_client.cpp
     sink/sink.cpp
     userinput/userinput.cpp
     userinput/userinput_dragndrop.cpp
@@ -251,6 +250,13 @@ else()
 endif()
 
 # Distributed third parties
+if (WEBSOCKETPP_FOUND AND ASIO_FOUND)
+    target_sources(splash-${API_VERSION} PRIVATE
+        network/websocket_server.cpp
+    )
+endif()
+
+# Distributed third parties first
 target_link_libraries(splash-${API_VERSION} snappy)
 target_link_libraries(splash-${API_VERSION} glfw)
 if (USE_SYSTEM_LIBS)

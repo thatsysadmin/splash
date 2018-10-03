@@ -11,7 +11,8 @@
 #include <GLFW/glfw3.h>
 
 #include "./core/coretypes.h"
-#include "./network/websocket_client.h"
+#include "./core/resizable_array.h"
+#include "./network/socket_client.h"
 
 // TODO: clean things up on quitting
 // TODO: add support for keyboard
@@ -30,7 +31,7 @@ static GLuint _imGuiVboHandle;
 static GLuint _imGuiElementsHandle;
 static GLuint _imFontTextureId;
 
-Splash::WebSocketClient _websocketClient;
+Splash::SocketClient _websocketClient;
 
 GLFWwindow* _window{nullptr};
 double _mouseX, _mouseY;
@@ -268,12 +269,22 @@ bool imguiInit()
 /**************/
 bool networkInit()
 {
-    return _websocketClient.connect("127.0.0.1", 1111);
+    return _websocketClient.connect("127.0.0.1", 9090);
 }
 
 /**************/
 void main_loop()
 {
+    // Network
+    char testString[] = "This is a test message";
+    Splash::ResizableArray<uint8_t> buffer(reinterpret_cast<uint8_t*>(testString), reinterpret_cast<uint8_t*>(testString + sizeof(testString)));
+    _websocketClient.send(buffer);
+
+    buffer.resize(256);
+    if (_websocketClient.receive(buffer, 1000))
+        cout << "Received a buffer : " << reinterpret_cast<char*>(buffer.data()) << endl;
+
+    // GUI rendering
     auto& io = ImGui::GetIO();
 
     io.MousePos = ImVec2(static_cast<float>(_mouseX), static_cast<float>(_mouseY));

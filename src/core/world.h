@@ -43,6 +43,7 @@
 #endif
 #include "./core/root_object.h"
 #include "./core/tree.h"
+#include "./network/websocket_server.h"
 
 namespace Splash
 {
@@ -98,6 +99,8 @@ class World : public RootObject
     std::mutex _configurationMutex;
     bool _enforceCoreAffinity{false}; //!< If true, World and Scenes have their affinity fixed in specific, separate cores
     bool _enforceRealtime{false};     //!< If true, realtime scheduling is asked to the system, if possible
+
+    WebsocketServer _websocketServer{};
 
     // World parameters
     unsigned int _worldFramerate{60}; //!< World framerate, default 60, because synchronous tasks need the loop to run

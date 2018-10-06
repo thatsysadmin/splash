@@ -61,6 +61,10 @@ test:18.04-syslibs:
     - cmake -DBUILD_GENERIC_ARCH=ON -DUSE_SYSTEM_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr ..
     - make -j$(nproc)
     - make test
+    # Build the remote webapp with Emscripten
+    - rm -rf *
+    - cmake ..
+    - make remote-webasm
 
 test:archlinux:
   stage: test
@@ -82,13 +86,6 @@ test:archlinux:
     - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     - make -j$(nproc)
     - make test
-
-test:emscripten:
-  stage: test
-  image: ubuntu:18.04
-  script:
-    - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-    - make remote-webasm
 
 #
 # Package

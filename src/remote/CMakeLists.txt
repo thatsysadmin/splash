@@ -50,6 +50,9 @@ include_directories(../../external/imgui)
 add_executable(remote-webasm remote.cpp)
 
 target_sources(remote-webasm PRIVATE
+    ../core/tree/tree_branch.cpp
+    ../core/tree/tree_leaf.cpp
+    ../core/tree/tree_root.cpp
     ../network/socket_client.cpp
     ../../external/imgui/imgui_demo.cpp
     ../../external/imgui/imgui_draw.cpp

@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 
 #include "./core/resizable_array.h"
+#include "./core/tree.h"
 
 namespace Splash
 {
@@ -42,7 +43,7 @@ class SocketClient
     /**
      * Constructor
      */
-    SocketClient();
+    SocketClient() = default;
 
     /**
      * Destructor
@@ -63,6 +64,19 @@ class SocketClient
      * \return Return true if the buffer was sent successfully
      */
     bool send(const ResizableArray<uint8_t>& buffer);
+
+    /**
+     * Ask the server for a copy of the whole tree
+     * \param tree Tree to be modified to match the received copy
+     * \return Return true if the tree has been successfully received
+     */
+    bool getTreeFromServer(Tree::Root& tree);
+
+    /**
+     * Send the updates from the given tree to the server
+     * \return Return true if the updates have been sent successfully
+     */
+    bool sendUpdatesToServer(Tree::Root& tree);
 
     /**
      * Read a message from the link

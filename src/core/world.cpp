@@ -13,6 +13,8 @@
 
 #include "./core/buffer_object.h"
 #include "./core/scene.h"
+#include "./core/serialize/serialize_uuid.h"
+#include "./core/serialize/serialize_value.h"
 #include "./core/serializer.h"
 #include "./image/image.h"
 #include "./image/queue.h"
@@ -65,7 +67,10 @@ void World::run()
         return;
     }
 
-    _websocketServer.start();
+#if HAVE_WEBSOCKETPP
+    _websocketServer = make_unique<WebsocketServer>(this);
+    _websocketServer->start();
+#endif
     applyConfig();
 
     while (true)
@@ -1588,6 +1593,19 @@ void World::registerAttributes()
 void World::initializeTree()
 {
     _tree.setName(_name);
+}
+
+/*************/
+void World::propagateTree()
+{
+    auto treeSeeds = _tree.getSeedList();
+    if (treeSeeds.empty())
+        return;
+
+    vector<uint8_t> serializedSeeds;
+    Serial::serialize(treeSeeds, serializedSeeds);
+    auto dataPtr = reinterpret_cast<uint8_t*>(serializedSeeds.data());
+    _link->sendBuffer("_tree", make_shared<SerializedObject>(dataPtr, dataPtr + serializedSeeds.size()));
 }
 
 } // namespace Splash

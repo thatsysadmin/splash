@@ -12,7 +12,9 @@
 
 #include "./core/coretypes.h"
 #include "./core/resizable_array.h"
+#include "./core/tree.h"
 #include "./network/socket_client.h"
+#include "./network/socket_messages.h"
 
 // TODO: clean things up on quitting
 // TODO: add support for keyboard
@@ -32,6 +34,8 @@ static GLuint _imGuiElementsHandle;
 static GLuint _imFontTextureId;
 
 Splash::SocketClient _websocketClient;
+Splash::Tree::Root _tree;
+bool _isConnected{false};
 
 GLFWwindow* _window{nullptr};
 double _mouseX, _mouseY;
@@ -267,22 +271,9 @@ bool imguiInit()
 }
 
 /**************/
-bool networkInit()
-{
-    return _websocketClient.connect("127.0.0.1", 9090);
-}
-
-/**************/
 void main_loop()
 {
-    // Network
-    char testString[] = "This is a test message";
-    Splash::ResizableArray<uint8_t> buffer(reinterpret_cast<uint8_t*>(testString), reinterpret_cast<uint8_t*>(testString + sizeof(testString)));
-    _websocketClient.send(buffer);
-
-    buffer.resize(256);
-    if (_websocketClient.receive(buffer, 1000))
-        cout << "Received a buffer : " << reinterpret_cast<char*>(buffer.data()) << endl;
+    _tree.processQueue();
 
     // GUI rendering
     auto& io = ImGui::GetIO();
@@ -327,12 +318,14 @@ void main_loop()
     ImGui::EndFrame();
 
     glfwSwapBuffers(_window);
+
+    _websocketClient.sendUpdatesToServer(_tree);
 }
 
 /*************/
 int main()
 {
-    if (!networkInit())
+    if (!_websocketClient.connect("127.0.0.1", 9090))
     {
         cout << "Error while initializing network connection" << endl;
         return 1;

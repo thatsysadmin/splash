@@ -22,6 +22,9 @@
 /* Defined to 1 if python3.x is detected */
 #cmakedefine01 HAVE_PYTHON
 
+/* Defined to 1 if websocketpp is detected */
+#cmakedefine01 HAVE_WEBSOCKETPP
+
 /* Defined to 1 if the Datapath SDK is detected */
 #cmakedefine01 HAVE_DATAPATH
 

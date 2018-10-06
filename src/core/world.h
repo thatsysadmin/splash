@@ -43,7 +43,9 @@
 #endif
 #include "./core/root_object.h"
 #include "./core/tree.h"
+#if HAVE_WEBSOCKETPP
 #include "./network/websocket_server.h"
+#endif
 
 namespace Splash
 {
@@ -100,7 +102,9 @@ class World : public RootObject
     bool _enforceCoreAffinity{false}; //!< If true, World and Scenes have their affinity fixed in specific, separate cores
     bool _enforceRealtime{false};     //!< If true, realtime scheduling is asked to the system, if possible
 
-    WebsocketServer _websocketServer{};
+#if HAVE_WEBSOCKETPP
+    std::unique_ptr<WebsocketServer> _websocketServer{nullptr};
+#endif
 
     // World parameters
     unsigned int _worldFramerate{60}; //!< World framerate, default 60, because synchronous tasks need the loop to run
@@ -244,6 +248,11 @@ class World : public RootObject
      * Initialize the tree
      */
     void initializeTree();
+
+    /**
+     * Propagate the Tree to peers
+     */
+    void propagateTree() override;
 };
 
 } // namespace Splash

@@ -250,7 +250,7 @@ else()
 endif()
 
 # Distributed third parties
-if (WEBSOCKETPP_FOUND AND ASIO_FOUND)
+if (HAVE_WEBSOCKETPP)
     target_sources(splash-${API_VERSION} PRIVATE
         network/websocket_server.cpp
     )

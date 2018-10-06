@@ -77,6 +77,8 @@ Some other libraries are optional:
   - [portaudio](http://portaudio.com/) to read and output audio,
   - [Python](https://python.org) for scripting capabilities,
   - [GPhoto](http://gphoto.sourceforge.net/) to use a camera for color calibration.
+  - [Emscripten](https://kripken.github.io/emscripten-site/index.html) to compile the web-based remote GUI
+  - [Websocketpp](https://www.zaphoyd.com/websocketpp) and [Asio](https://think-async.com/) to allow for websocket communation
 - Dependencies built at compile-time from submodules:
   - [libltc](http://x42.github.io/libltc/) to read timecodes from an audio input,
 

@@ -28,11 +28,13 @@
 #define ASIO_STANDALONE
 
 #include <future>
+#include <list>
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
 #include "./core/coretypes.h"
+#include "./core/root_object.h"
 
 namespace Splash
 {
@@ -44,7 +46,11 @@ class WebsocketServer
     /**
      * Constructor
      */
-    explicit WebsocketServer(uint32_t port = 9090) : _port(port) {};
+    explicit WebsocketServer(RootObject* root, uint32_t port = 9090)
+        : _root(root)
+        , _port(port)
+    {
+    }
 
     /**
      * Destructor
@@ -58,6 +64,13 @@ class WebsocketServer
     bool isRunning() const { return _running; }
 
     /**
+     * Send the tree serialized updates to the clients
+     * \param treeUpdates Tree updates
+     * \return Return true if all went well
+     */
+    bool sendTreeUpdates(const ResizableArray<uint8_t>& treeUpdates);
+
+    /**
      * Starts the server
      * \return Return true if the server started correctly
      */
@@ -68,10 +81,15 @@ class WebsocketServer
     typedef server_t::message_ptr message_ptr_t;
 
     std::future<void> _serverFuture;
+    RootObject* _root;
     bool _running{false};
     server_t _server;
     uint32_t _port;
 
+    std::list<websocketpp::connection_hdl> _connections;
+
+    void onOpen(websocketpp::connection_hdl handler);
+    void onClose(websocketpp::connection_hdl handler);
     void onMessage(websocketpp::connection_hdl handler, message_ptr_t msg);
 };
 

@@ -253,8 +253,12 @@ endif()
 if (HAVE_WEBSOCKETPP)
     target_sources(splash-${API_VERSION} PRIVATE
         network/websocket_server.cpp
+        network/socket_message.cpp
     )
 endif()
+
+# Stdlib 
+target_link_libraries(splash-${API_VERSION} stdc++fs)
 
 # Distributed third parties first
 target_link_libraries(splash-${API_VERSION} snappy)

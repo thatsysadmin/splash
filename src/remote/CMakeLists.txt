@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016 Emmanuel Durand
+# Copyright (C) 2018 Emmanuel Durand
 #
 # This file is part of Splash.
 #
@@ -24,10 +24,13 @@ project(
 if (NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Emscripten")
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm)
     execute_process(
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm
-        COMMAND ${CMAKE_COMMAND} -DCMAKE_TOOLCHAIN_FILE=../../external/emsdk/emscripten/1.38.12/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -G "Unix Makefiles" ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../external/emsdk/emscripten
+        COMMAND sh -c "ls | sort | head -n 1 | tr -d '\n'" OUTPUT_VARIABLE LATEST_EMSDK
     )
-
+    execute_process(
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm
+        COMMAND ${CMAKE_COMMAND} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/../../external/emsdk/emscripten/${LATEST_EMSDK}/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -G "Unix Makefiles" ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     add_custom_target(remote-webasm
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm
         COMMAND ${CMAKE_MAKE_PROGRAM} -j$(nproc)
@@ -40,9 +43,9 @@ cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
 set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3 -s USE_WEBGL2=1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3 -s USE_WEBGL2=1 -s ALLOW_MEMORY_GROWTH=1")
 
 include_directories(../)
 include_directories(../../external/imgui)
@@ -54,6 +57,7 @@ target_sources(remote-webasm PRIVATE
     ../core/tree/tree_leaf.cpp
     ../core/tree/tree_root.cpp
     ../network/socket_client.cpp
+    ../network/socket_message.cpp
     ../../external/imgui/imgui_demo.cpp
     ../../external/imgui/imgui_draw.cpp
     ../../external/imgui/imgui.cpp

@@ -27,11 +27,12 @@
 #define SPLASH_SOCKETCLIENT_H
 
 #include <string>
+#include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "./core/resizable_array.h"
 #include "./core/tree.h"
+#include "./network/socket_message.h"
 
 namespace Splash
 {
@@ -63,7 +64,7 @@ class SocketClient
      * \param buffer Buffer to send
      * \return Return true if the buffer was sent successfully
      */
-    bool send(const ResizableArray<uint8_t>& buffer);
+    bool send(const std::vector<uint8_t>& buffer);
 
     /**
      * Ask the server for a copy of the whole tree
@@ -73,18 +74,40 @@ class SocketClient
     bool getTreeFromServer(Tree::Root& tree);
 
     /**
+     * Ask the server for tree updates
+     * \param tree Tree to be updated
+     * \return Return true if the tree has been successfully updated
+     */
+    bool getTreeUpdates(Tree::Root& tree);
+
+    /**
+     * Process the next received message
+     * \param tree Tree which will get the updates
+     * \return Return true the messages were correctly handled
+     */
+    bool processMessages(Tree::Root& tree);
+
+    /**
      * Send the updates from the given tree to the server
      * \return Return true if the updates have been sent successfully
      */
     bool sendUpdatesToServer(Tree::Root& tree);
 
     /**
-     * Read a message from the link
+     * Read a buffer from the link
      * \param buffer Read buffer
      * \param timeout Timeout for reading a buffer
      * \return Return true if a buffer was read
      */
-    bool receive(ResizableArray<uint8_t>& buffer, int timeout = 0);
+    bool receive(std::vector<uint8_t>& buffer, int timeout = 0);
+
+    /**
+     * Read a message from the link
+     * \param message Message read
+     * \param timeout Timeout for reading a buffer
+     * \return Return true if a buffer was read
+     */
+    bool receiveMessage(Socket::Message& message, int timeout);
 
   private:
     bool _connected{false};

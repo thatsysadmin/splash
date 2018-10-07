@@ -6,7 +6,7 @@
 #include "./core/serialize/serialize_uuid.h"
 #include "./core/serialize/serialize_value.h"
 #include "./core/serializer.h"
-#include "./network/socket_messages.h"
+#include "./network/socket_message.h"
 #include "./utils/log.h"
 
 using namespace std;
@@ -34,9 +34,9 @@ bool WebsocketServer::start()
 #endif
 
         _server.init_asio();
-        _server.set_open_handler(std::bind(&WebsocketServer::onOpen, this, std::placeholders::_1));
-        _server.set_close_handler(std::bind(&WebsocketServer::onClose, this, std::placeholders::_1));
-        _server.set_message_handler(std::bind(&WebsocketServer::onMessage, this, std::placeholders::_1, std::placeholders::_2));
+        _server.set_open_handler([&](websocketpp::connection_hdl handler) { onOpen(handler); });
+        _server.set_close_handler([&](websocketpp::connection_hdl handler) { onClose(handler); });
+        _server.set_message_handler([&](websocketpp::connection_hdl handler, message_ptr_t msg) { onMessage(handler, msg); });
 
         _server.listen(_port);
         _server.start_accept();
@@ -60,70 +60,70 @@ bool WebsocketServer::start()
 }
 
 /*************/
-bool WebsocketServer::sendTreeUpdates(const ResizableArray<uint8_t>& treeUpdates)
+void WebsocketServer::queueTreeUpdates(const list<Tree::Seed>& treeUpdates)
 {
-    for (auto& hdl : _connections)
+    lock_guard<mutex> lock(_updatesMutex);
+    for (auto& connection : _connections)
     {
-        auto query = Socket::MessageType::UPDATE_TREE;
-        ResizableArray<uint8_t> buffer(reinterpret_cast<uint8_t*>(&query), reinterpret_cast<uint8_t*>(&query) + sizeof(query));
-        _server.send(hdl, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
-
-        uint32_t length = treeUpdates.size();
-        buffer = ResizableArray<uint8_t>(reinterpret_cast<uint8_t*>(&length), reinterpret_cast<uint8_t*>(&length) + sizeof(length));
-        _server.send(hdl, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
-
-        _server.send(hdl, treeUpdates.data(), treeUpdates.size(), websocketpp::frame::opcode::binary);
+        auto updatesIt = _updatesPerConnection.find(connection);
+        assert(updatesIt != _updatesPerConnection.end());
+        for (const auto& update : treeUpdates)
+            updatesIt->second.push_back(update);
     }
-
-    return true;
 }
 
 /*************/
 void WebsocketServer::onMessage(websocketpp::connection_hdl handler, message_ptr_t msg)
 {
-    auto message = reinterpret_cast<const Socket::Message*>(msg->get_payload().data());
+    auto data = reinterpret_cast<const uint8_t*>(msg->get_payload().data());
+    auto serializedMessage = vector<uint8_t>(data, data + msg->get_payload().size());
+    auto message = Serial::deserialize<Socket::Message>(serializedMessage);
 
-    switch (message->type)
+    switch (Socket::getMessageType(message))
     {
     default:
     {
         assert(false);
         return;
     }
-    case Socket::MessageType::GET_TREE:
+    case Socket::MessageType::ASK_TREE:
     {
-        Log::get() << Log::MESSAGE << "WebsocketServer::" << __FUNCTION__ << " - Received a GET_TREE message" << Log::endl;
-
-        auto query = Socket::MessageType::SEND_TREE;
-        ResizableArray<uint8_t> buffer(reinterpret_cast<uint8_t*>(&query), reinterpret_cast<uint8_t*>(&query) + sizeof(query));
-        _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
-
         auto tree = _root->getTree();
         auto seeds = tree->getSeedsForPath("/");
         vector<uint8_t> serializedSeeds;
         Serial::serialize(seeds, serializedSeeds);
 
-        buffer.resize(sizeof(uint32_t));
-        *reinterpret_cast<uint32_t*>(buffer.data()) = serializedSeeds.size();
+        auto outMessage = Socket::createMessage(Socket::MessageType::SEND_TREE, serializedSeeds);
+        vector<uint8_t> buffer;
+        Serial::serialize(outMessage, buffer);
         _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
-
-        if (serializedSeeds.size() != 0)
-        {
-            buffer = ResizableArray<uint8_t>(serializedSeeds.data(), serializedSeeds.data() + serializedSeeds.size());
-            _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
-        }
 
         break;
     }
-    case Socket::MessageType::UPDATE_TREE:
+    case Socket::MessageType::ASK_UPDATES:
     {
-        Log::get() << Log::MESSAGE << "WebsocketServer::" << __FUNCTION__ << " - Received a UPDATE_TREE message" << Log::endl;
+        lock_guard<mutex> lock(_updatesMutex);
+        auto seeds = list<Tree::Seed>();
+        auto updatesIt = _updatesPerConnection.find(handler);
+        assert(updatesIt != _updatesPerConnection.end());
+        std::swap(seeds, updatesIt->second);
 
-        if (message->payloadSize == 0)
+        vector<uint8_t> serializedSeeds;
+        Serial::serialize(seeds, serializedSeeds);
+        auto outMessage = Socket::createMessage(Socket::MessageType::SEND_UPDATES, serializedSeeds);
+        vector<uint8_t> buffer;
+        Serial::serialize(outMessage, buffer);
+        _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
+
+        break;
+    }
+    case Socket::MessageType::SEND_UPDATES:
+    {
+        auto payload = Socket::getMessagePayload(message);
+        if (payload.size() == 0)
             break;
 
-        auto serializedSeeds = vector<uint8_t>(message->payload, message->payload + message->payloadSize);
-        auto seeds = Serial::deserialize<list<Tree::Seed>>(serializedSeeds);
+        auto seeds = Serial::deserialize<list<Tree::Seed>>(payload);
         auto tree = _root->getTree();
         tree->addSeedsToQueue(seeds);
 
@@ -138,6 +138,7 @@ void WebsocketServer::onOpen(websocketpp::connection_hdl handler)
     auto connection = _server.get_con_from_hdl(handler);
     Log::get() << Log::MESSAGE << "WebsocketServer::" << __FUNCTION__ << " - Connection opened from " << connection->get_host() << Log::endl;
     _connections.push_back(handler);
+    _updatesPerConnection.emplace(make_pair(handler, list<Tree::Seed>()));
 }
 
 /*************/
@@ -146,6 +147,7 @@ void WebsocketServer::onClose(websocketpp::connection_hdl handler)
     auto connection = _server.get_con_from_hdl(handler);
     Log::get() << Log::MESSAGE << "WebsocketServer::" << __FUNCTION__ << " - Connection closed from " << connection->get_host() << Log::endl;
     _connections.remove_if([&](websocketpp::connection_hdl hdl) { return handler.lock() == hdl.lock(); });
+    _updatesPerConnection.erase(handler);
 }
 
 } // namespace Splash

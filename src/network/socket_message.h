@@ -25,6 +25,10 @@
 #ifndef SPLASH_SOCKET_MESSAGES_H
 #define SPLASH_SOCKET_MESSAGES_H
 
+#include <tuple>
+#include <vector>
+#include <stdint.h>
+
 namespace Splash
 {
 namespace Socket
@@ -33,18 +37,18 @@ namespace Socket
 /*************/
 enum MessageType : uint32_t
 {
-    GET_TREE = 0,
+    ASK_TREE,
     SEND_TREE,
-    UPDATE_TREE
+    ASK_UPDATES,
+    SEND_UPDATES
 };
 
 /*************/
-struct Message
-{
-    MessageType type;
-    uint32_t payloadSize;
-    uint8_t payload[];
-};
+typedef std::tuple<MessageType, std::vector<uint8_t>> Message;
+
+Message createMessage(const MessageType& type, const std::vector<uint8_t>& payload);
+MessageType getMessageType(const Message& message);
+std::vector<uint8_t> getMessagePayload(const Message& message);
 
 } // namespace Socket
 } // namespace Splash

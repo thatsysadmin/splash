@@ -29,12 +29,16 @@
 
 #include <future>
 #include <list>
+#include <map>
+#include <memory>
+#include <mutex>
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
 #include "./core/coretypes.h"
 #include "./core/root_object.h"
+#include "./core/tree.h"
 
 namespace Splash
 {
@@ -64,11 +68,11 @@ class WebsocketServer
     bool isRunning() const { return _running; }
 
     /**
-     * Send the tree serialized updates to the clients
+     * Queue the tree updates for the clients to get them
      * \param treeUpdates Tree updates
      * \return Return true if all went well
      */
-    bool sendTreeUpdates(const ResizableArray<uint8_t>& treeUpdates);
+    void queueTreeUpdates(const std::list<Tree::Seed>& treeUpdates);
 
     /**
      * Starts the server
@@ -86,7 +90,9 @@ class WebsocketServer
     server_t _server;
     uint32_t _port;
 
-    std::list<websocketpp::connection_hdl> _connections;
+    std::list<websocketpp::connection_hdl> _connections{};
+    std::map<websocketpp::connection_hdl, std::list<Tree::Seed>, std::owner_less<websocketpp::connection_hdl>> _updatesPerConnection{};
+    std::mutex _updatesMutex{};
 
     void onOpen(websocketpp::connection_hdl handler);
     void onClose(websocketpp::connection_hdl handler);

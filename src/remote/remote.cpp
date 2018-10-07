@@ -1,6 +1,8 @@
+#include <chrono>
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <emscripten/emscripten.h>
@@ -14,11 +16,14 @@
 #include "./core/resizable_array.h"
 #include "./core/tree.h"
 #include "./network/socket_client.h"
-#include "./network/socket_messages.h"
+#include "./network/socket_message.h"
+#include "./utils/log.h"
 
 // TODO: clean things up on quitting
 // TODO: add support for keyboard
 // TODO: improve support for mouse, especially supported multiple mouse buttons at at time
+// TODO: Message serialization should be done by Splash::serializer
+// TODO: message handling should be done in a loop, going through a message queue
 
 using namespace std;
 
@@ -40,6 +45,67 @@ bool _isConnected{false};
 GLFWwindow* _window{nullptr};
 double _mouseX, _mouseY;
 int _mouseButton, _mouseAction, _mouseMods;
+
+/**
+ * \brief Clean up a path, removing extra slashes and such
+ * \param filepath Path to clean
+ * \return Return the path cleaned
+ */
+std::string cleanPath(const std::string& filepath)
+{
+    std::vector<std::string> links;
+
+    auto remain = filepath;
+    while (remain.size() != 0)
+    {
+        auto nextSlashPos = remain.find("/");
+        if (nextSlashPos == 0)
+        {
+            remain = remain.substr(1, std::string::npos);
+            continue;
+        }
+
+        auto link = remain.substr(0, nextSlashPos);
+        links.push_back(link);
+
+        if (nextSlashPos == std::string::npos)
+            remain.clear();
+        else
+            remain = remain.substr(nextSlashPos + 1, std::string::npos);
+    }
+
+    for (uint32_t i = 0; i < links.size();)
+    {
+        if (links[i] == "..")
+        {
+            links.erase(links.begin() + i);
+            if (i > 0)
+                links.erase(links.begin() + i - 1);
+            i -= 1;
+            continue;
+        }
+
+        if (links[i] == ".")
+        {
+            links.erase(links.begin() + i);
+            continue;
+        }
+
+        ++i;
+    }
+
+    auto path = std::string("");
+    for (auto& link : links)
+    {
+        path += "/";
+        path += link;
+    }
+
+    if (path.size() == 0)
+        path = "/";
+
+    return path;
+}
 
 /*************/
 void mouseBtnCallback(GLFWwindow* win, int button, int action, int mods)
@@ -169,13 +235,13 @@ bool imguiInit()
     glGetProgramiv(_imGuiShaderHandle, GL_LINK_STATUS, &status);
     if (status == GL_FALSE)
     {
-        cout << "Error while linking the shader program" << endl;
+        Splash::Log::get() << Splash::Log::ERROR << "main - Error while linking the shader program" << Splash::Log::endl;
 
         GLint length;
         glGetProgramiv(_imGuiShaderHandle, GL_INFO_LOG_LENGTH, &length);
         char* log = (char*)malloc(length);
         glGetProgramInfoLog(_imGuiShaderHandle, length, &length, log);
-        cout << "Error log: \n" << (const char*)log << endl;
+        Splash::Log::get() << Splash::Log::ERROR << "main - " << (const char*)log << Splash::Log::endl;
         free(log);
         return false;
     }
@@ -273,7 +339,17 @@ bool imguiInit()
 /**************/
 void main_loop()
 {
+    if (!_isConnected)
+        _isConnected = _websocketClient.getTreeFromServer(_tree);
+
+    _websocketClient.getTreeUpdates(_tree);
     _tree.processQueue();
+
+    if (!_websocketClient.processMessages(_tree))
+    {
+        Splash::Log::get() << Splash::Log::ERROR << "main_loop - Error while processing incoming messages" << Splash::Log::endl;
+        return;
+    }
 
     // GUI rendering
     auto& io = ImGui::GetIO();
@@ -312,7 +388,31 @@ void main_loop()
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+
+    std::function<void(const string&, const string&)> printBranch;
+
+    printBranch = [&](const string& path, const string& nodeName) {
+        if (ImGui::TreeNode(nodeName.c_str()))
+        {
+            for (const auto& branch : _tree.getBranchListAt(path))
+            {
+                auto childPath = cleanPath(path + "/" + branch);
+                printBranch(childPath, branch);
+            }
+
+            for (const auto& leaf : _tree.getLeafListAt(path))
+            {
+                Splash::Value leafValue;
+                _tree.getValueForLeafAt(cleanPath(path + "/" + leaf), leafValue);
+                ImGui::Text("%s : %s", leaf.c_str(), leafValue.as<string>().c_str());
+            }
+
+            ImGui::TreePop();
+        }
+    };
+
+    printBranch("/", "/");
+
     ImGui::Render();
     imguiRenderDrawLists(ImGui::GetDrawData());
     ImGui::EndFrame();
@@ -327,13 +427,13 @@ int main()
 {
     if (!_websocketClient.connect("127.0.0.1", 9090))
     {
-        cout << "Error while initializing network connection" << endl;
+        Splash::Log::get() << Splash::Log::ERROR << "main - Error while initializing network connection" << Splash::Log::endl;
         return 1;
     }
 
     if (!glfwInit())
     {
-        cout << "Error while initializing GLFW" << endl;
+        Splash::Log::get() << Splash::Log::ERROR << "main - Error while initializing GLFW" << Splash::Log::endl;
         return 1;
     }
 
@@ -347,7 +447,7 @@ int main()
 
     if (!_window)
     {
-        cout << "Unable to create a GLFW window" << endl;
+        Splash::Log::get() << Splash::Log::ERROR << "main - Unable to create a GLFW window" << Splash::Log::endl;
         return 1;
     }
     glfwSetMouseButtonCallback(_window, mouseBtnCallback);

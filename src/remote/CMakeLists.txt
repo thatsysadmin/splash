@@ -45,7 +45,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3 -s USE_WEBGL2=1 -s ALLOW_MEMORY_GROWTH=1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3 -s USE_WEBGL2=1 -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=1")
 
 include_directories(../)
 include_directories(../../external/imgui)
@@ -60,6 +60,7 @@ target_sources(remote-webasm PRIVATE
     ../network/socket_message.cpp
     ../../external/imgui/imgui_demo.cpp
     ../../external/imgui/imgui_draw.cpp
+    ../../external/imgui/imgui_widgets.cpp
     ../../external/imgui/imgui.cpp
 )
 

@@ -35,3 +35,6 @@
 [submodule "external/emsdk"]
 	path = external/emsdk
 	url = https://github.com/juj/emsdk.git
+[submodule "external/asio"]
+	path = external/asio
+	url = https://github.com/chriskohlhoff/asio.git

@@ -17,7 +17,7 @@
 # along with Splash.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(
     splash 
     VERSION 0.8.3
@@ -85,8 +85,6 @@ pkg_search_module(PORTAUDIO portaudio-2.0)
 pkg_search_module(SHMDATA shmdata-1.3)
 pkg_search_module(SLAPS slaps-0.0)
 pkg_search_module(SDL2 sdl2)
-set(CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS} -DASIO_STANDALONE")
-CHECK_INCLUDE_FILE_CXX("asio.hpp" ASIO_FOUND)
 
 #
 # Configuration
@@ -95,6 +93,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS} -DASIO_STANDALONE")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_FORCE_RADIANS")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDATADIR=\\\"${CMAKE_INSTALL_PREFIX}/share/splash/\\\"")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSPLASHPREFIX=\\\"${CMAKE_INSTALL_PREFIX}\\\"")
@@ -105,9 +104,7 @@ set(HAVE_PORTAUDIO ${PORTAUDIO_FOUND})
 set(HAVE_SHMDATA ${SHMDATA_FOUND})
 set(HAVE_PYTHON ${PYTHONLIBS_FOUND})
 set(HAVE_SLAPS ${SLAPS_FOUND})
-if (ASIO_FOUND)
-    set(HAVE_WEBSOCKETPP ${WEBSOCKETPP_FOUND})
-endif()
+set(HAVE_WEBSOCKETPP ${WEBSOCKETPP_FOUND})
 
 if (FFMPEG_libavformat_VERSION LESS 57)
     message(WARNING "FFmpeg version is older than 3.1, support disabled")

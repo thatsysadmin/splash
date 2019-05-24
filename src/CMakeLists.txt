@@ -59,6 +59,7 @@ if (NOT USE_SYSTEM_LIBS)
     include_directories(../external/glm)
 endif()
 
+include_directories(../external/asio/asio/include)
 include_directories(../external/hap/source)
 include_directories(../external/imgui)
 include_directories(../external/libltc/src)

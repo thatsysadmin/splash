@@ -114,6 +114,11 @@ class SocketClient
     int _sockfd{0};
     int _port{0};
     struct hostent* _server{nullptr};
+
+    /**
+     * Discard the current message
+     */
+    void flushMessage();
 };
 
 } // namespace Splash

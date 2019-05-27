@@ -8,21 +8,29 @@ namespace Socket
 {
 
 /*************/
-Message createMessage(const MessageType& type, const vector<uint8_t>& payload)
+tuple<MessageId, Message> createMessage(const MessageType& type, const vector<uint8_t>& payload, const std::optional<MessageId>& incomingId)
 {
-    return make_tuple(type, payload);
+    auto messageId = incomingId.value_or(_messageIndex.fetch_add(1));
+    auto message = make_tuple(messageId, type, payload);
+    return std::make_tuple(messageId, message);
 }
 
 /*************/
-MessageType getMessageType(const Message& message)
+MessageId getMessageId(const Message& message)
 {
     return get<0>(message);
 }
 
 /*************/
-vector<uint8_t> getMessagePayload(const Message& message)
+MessageType getMessageType(const Message& message)
 {
     return get<1>(message);
+}
+
+/*************/
+vector<uint8_t> getMessagePayload(const Message& message)
+{
+    return get<2>(message);
 }
 
 } // namespace Socket

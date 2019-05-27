@@ -342,9 +342,14 @@ void main_loop()
     if (!_isConnected)
         _isConnected = _websocketClient.getTreeFromServer(_tree);
 
-    _websocketClient.getTreeUpdates(_tree);
-    _tree.processQueue();
+    if (!_isConnected)
+        return;
 
+    if (!_websocketClient.getTreeUpdates(_tree))
+        Splash::Log::get() << Splash::Log::MESSAGE << "main_loop - No tree update" << Splash::Log::endl;
+    else
+        Splash::Log::get() << Splash::Log::MESSAGE << "main_loop - Got a tree update!" << Splash::Log::endl;
+    
     if (!_websocketClient.processMessages(_tree))
     {
         Splash::Log::get() << Splash::Log::ERROR << "main_loop - Error while processing incoming messages" << Splash::Log::endl;
@@ -419,7 +424,7 @@ void main_loop()
 
     glfwSwapBuffers(_window);
 
-    _websocketClient.sendUpdatesToServer(_tree);
+    // _websocketClient.sendUpdatesToServer(_tree);
 }
 
 /*************/

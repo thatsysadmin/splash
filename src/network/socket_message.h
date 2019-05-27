@@ -25,6 +25,8 @@
 #ifndef SPLASH_SOCKET_MESSAGES_H
 #define SPLASH_SOCKET_MESSAGES_H
 
+#include <atomic>
+#include <optional>
 #include <tuple>
 #include <vector>
 #include <stdint.h>
@@ -37,16 +39,20 @@ namespace Socket
 /*************/
 enum MessageType : uint32_t
 {
-    ASK_TREE,
+    ASK_TREE = 1,
     SEND_TREE,
     ASK_UPDATES,
     SEND_UPDATES
 };
 
 /*************/
-typedef std::tuple<MessageType, std::vector<uint8_t>> Message;
+typedef uint32_t MessageId;
+typedef std::tuple<MessageId, MessageType, std::vector<uint8_t>> Message;
 
-Message createMessage(const MessageType& type, const std::vector<uint8_t>& payload);
+static std::atomic_uint _messageIndex{0};
+
+std::tuple<MessageId, Message> createMessage(const MessageType& type, const std::vector<uint8_t>& payload, const std::optional<MessageId>& incomingId = {});
+MessageId getMessageId(const Message& message);
 MessageType getMessageType(const Message& message);
 std::vector<uint8_t> getMessagePayload(const Message& message);
 

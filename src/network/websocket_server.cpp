@@ -78,6 +78,7 @@ void WebsocketServer::onMessage(websocketpp::connection_hdl handler, message_ptr
     auto data = reinterpret_cast<const uint8_t*>(msg->get_payload().data());
     auto serializedMessage = vector<uint8_t>(data, data + msg->get_payload().size());
     auto message = Serial::deserialize<Socket::Message>(serializedMessage);
+    auto messageId = Socket::getMessageId(message);
 
     switch (Socket::getMessageType(message))
     {
@@ -88,12 +89,15 @@ void WebsocketServer::onMessage(websocketpp::connection_hdl handler, message_ptr
     }
     case Socket::MessageType::ASK_TREE:
     {
+        std::cout << "SEND TREE\n";
         auto tree = _root->getTree();
         auto seeds = tree->getSeedsForPath("/");
         vector<uint8_t> serializedSeeds;
         Serial::serialize(seeds, serializedSeeds);
 
-        auto outMessage = Socket::createMessage(Socket::MessageType::SEND_TREE, serializedSeeds);
+        Socket::Message outMessage;
+        Socket::MessageId outMessageId;
+        std::tie(outMessageId, outMessage) = Socket::createMessage(Socket::MessageType::SEND_TREE, serializedSeeds, messageId);
         vector<uint8_t> buffer;
         Serial::serialize(outMessage, buffer);
         _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);
@@ -102,6 +106,7 @@ void WebsocketServer::onMessage(websocketpp::connection_hdl handler, message_ptr
     }
     case Socket::MessageType::ASK_UPDATES:
     {
+        std::cout << "SEND UPDATES\n";
         lock_guard<mutex> lock(_updatesMutex);
         auto seeds = list<Tree::Seed>();
         auto updatesIt = _updatesPerConnection.find(handler);
@@ -110,7 +115,10 @@ void WebsocketServer::onMessage(websocketpp::connection_hdl handler, message_ptr
 
         vector<uint8_t> serializedSeeds;
         Serial::serialize(seeds, serializedSeeds);
-        auto outMessage = Socket::createMessage(Socket::MessageType::SEND_UPDATES, serializedSeeds);
+
+        Socket::Message outMessage;
+        Socket::MessageId outMessageId;
+        std::tie(outMessageId, outMessage) = Socket::createMessage(Socket::MessageType::SEND_UPDATES, serializedSeeds, messageId);
         vector<uint8_t> buffer;
         Serial::serialize(outMessage, buffer);
         _server.send(handler, buffer.data(), buffer.size(), websocketpp::frame::opcode::binary);

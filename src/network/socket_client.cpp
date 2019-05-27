@@ -1,9 +1,11 @@
 #include "./network/socket_client.h"
 
 #include <algorithm>
+#include <chrono>
 #include <netdb.h>
 #include <string.h>
 #include <sys/select.h>
+#include <thread>
 #include <unistd.h>
 
 #include "./core/coretypes.h"
@@ -73,22 +75,54 @@ bool SocketClient::send(const vector<uint8_t>& buffer)
 }
 
 /*************/
+void SocketClient::flushMessage()
+{
+    vector<uint8_t> buffer;
+    buffer.resize(sizeof(Socket::MessageType));
+    while (!receive(buffer, -1))
+        std::this_thread::sleep_for(5ms);
+
+    buffer.resize(sizeof(uint32_t));
+    while (!receive(buffer, -1))
+        std::this_thread::sleep_for(5ms);
+
+    auto length = *reinterpret_cast<uint32_t*>(buffer.data());
+    buffer.resize(length);
+    while (!receive(buffer, -1))
+        std::this_thread::sleep_for(5ms);
+
+    return;
+}
+
+/*************/
 bool SocketClient::getTreeFromServer(Tree::Root& tree)
 {
-    auto message = Socket::createMessage(Socket::MessageType::ASK_TREE, {});
+    Socket::Message message;
+    Socket::MessageId messageId;
+    std::tie(messageId, message) = Socket::createMessage(Socket::MessageType::ASK_TREE, {});
     vector<uint8_t> buffer;
     Serial::serialize(message, buffer);
     send(buffer);
 
     while (true)
     {
-        buffer.resize(sizeof(Socket::MessageType));
+        buffer.resize(sizeof(Socket::MessageId));
         if (!receive(buffer, -1))
-            return false;
+            continue;
 
-        auto messageType = *reinterpret_cast<Socket::MessageType*>(buffer.data());
-        if (messageType == Socket::MessageType::SEND_TREE)
-            break;
+        auto incomingId = *reinterpret_cast<Socket::MessageId*>(buffer.data());
+        if (incomingId == messageId)
+        {
+            buffer.resize(sizeof(Socket::MessageType));
+            while (!receive(buffer, -1))
+                continue;
+
+            auto incomingType = *reinterpret_cast<Socket::MessageType*>(buffer.data());
+            if (incomingType == Socket::MessageType::SEND_TREE)
+                break;
+        }
+
+        flushMessage();
     }
 
     // Get the serialized tree size
@@ -116,20 +150,32 @@ bool SocketClient::getTreeFromServer(Tree::Root& tree)
 /*************/
 bool SocketClient::getTreeUpdates(Tree::Root& tree)
 {
-    auto message = Socket::createMessage(Socket::MessageType::ASK_UPDATES, {});
+    Socket::Message message;
+    Socket::MessageId messageId;
+    std::tie(messageId, message) = Socket::createMessage(Socket::MessageType::ASK_UPDATES, {});
     vector<uint8_t> buffer;
     Serial::serialize(message, buffer);
     send(buffer);
 
     while (true)
     {
-        buffer.resize(sizeof(Socket::MessageType));
+        buffer.resize(sizeof(Socket::MessageId));
         if (!receive(buffer, -1))
-            return false;
+            continue;
 
-        auto messageType = *reinterpret_cast<Socket::MessageType*>(buffer.data());
-        if (messageType == Socket::MessageType::SEND_UPDATES)
-            break;
+        auto incomingId = *reinterpret_cast<Socket::MessageId*>(buffer.data());
+        if (incomingId == messageId)
+        {
+            buffer.resize(sizeof(Socket::MessageType));
+            while (!receive(buffer, -1))
+                continue;
+
+            auto incomingType = *reinterpret_cast<Socket::MessageType*>(buffer.data());
+            if (incomingType == Socket::MessageType::SEND_UPDATES)
+                break;
+        }
+
+        flushMessage();
     }
 
     // Get the serialized tree size
@@ -137,6 +183,7 @@ bool SocketClient::getTreeUpdates(Tree::Root& tree)
     if (!receive(buffer, -1))
         return false;
     auto length = *reinterpret_cast<uint32_t*>(buffer.data());
+    std::cout << "Buffer length: " << length << "\n";
 
     // Get the tree
     buffer.resize(length);
@@ -148,6 +195,7 @@ bool SocketClient::getTreeUpdates(Tree::Root& tree)
 
     auto seeds = Serial::deserialize<list<Tree::Seed>>(buffer);
     tree.addSeedsToQueue(seeds);
+    tree.processQueue();
 
     return true;
 }
@@ -188,7 +236,9 @@ bool SocketClient::sendUpdatesToServer(Tree::Root& tree)
     vector<uint8_t> serializedSeeds;
     Splash::Serial::serialize(treeSeeds, serializedSeeds);
 
-    auto message = Socket::createMessage(Socket::MessageType::SEND_UPDATES, serializedSeeds);
+    Socket::Message message;
+    Socket::MessageId messageId;
+    std::tie(messageId, message) = Socket::createMessage(Socket::MessageType::SEND_UPDATES, serializedSeeds);
     vector<uint8_t> buffer;
     Serial::serialize(message, buffer);
 
@@ -233,9 +283,11 @@ bool SocketClient::receiveMessage(Socket::Message& message, int timeout)
         return false;
     auto payloadSize = *reinterpret_cast<uint32_t*>(buffer.data());
 
+    Socket::MessageId messageId;
+
     if (payloadSize == 0)
     {
-        message = Socket::createMessage(messageType, {});
+        std::tie(messageId, message) = Socket::createMessage(messageType, {});
         return true;
     }
 
@@ -243,7 +295,7 @@ bool SocketClient::receiveMessage(Socket::Message& message, int timeout)
     if (!receive(payload, 0))
         return false;
 
-    message = Socket::createMessage(messageType, payload);
+    std::tie(messageId, message) = Socket::createMessage(messageType, payload);
     return true;
 }
 

@@ -24,12 +24,8 @@ project(
 if (NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Emscripten")
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm)
     execute_process(
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../external/emsdk/emscripten
-        COMMAND sh -c "ls | sort | head -n 1 | tr -d '\n'" OUTPUT_VARIABLE LATEST_EMSDK
-    )
-    execute_process(
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm
-        COMMAND ${CMAKE_COMMAND} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/../../external/emsdk/emscripten/${LATEST_EMSDK}/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -G "Unix Makefiles" ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${CMAKE_COMMAND} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/../../external/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -G "Unix Makefiles" ${CMAKE_CURRENT_SOURCE_DIR}
     )
     add_custom_target(remote-webasm
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/webasm

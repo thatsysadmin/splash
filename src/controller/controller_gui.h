@@ -88,7 +88,7 @@ class Gui : public ControllerObject
     ~Gui() final;
 
     /**
-     * No copy constructor, but a move one
+     * No copy constructor
      */
     Gui(const Gui&) = delete;
     Gui& operator=(const Gui&) = delete;

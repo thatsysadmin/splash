@@ -57,8 +57,10 @@ if (NOT USE_SYSTEM_LIBS)
     include_directories(../external/glm)
 endif()
 
+include_directories(../external)
 include_directories(../external/hap/source)
 include_directories(../external/imgui)
+include_directories(../external/imtui/include)
 include_directories(../external/libltc/src)
 include_directories(../external/stb)
 include_directories(../external/syphon/build/Release/Syphon.framework/Headers)
@@ -81,6 +83,7 @@ include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${OPENCV_INCLUDE_DIRS})
 include_directories(${SNAPPY_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${CURSES_INCLUDE_DIRS})
 include_directories(${SLAPS_INCLUDE_DIRS})
 
 # Distributed third parties first
@@ -125,6 +128,7 @@ target_sources(splash-${API_VERSION} PRIVATE
     controller/controller.cpp
     controller/controller_blender.cpp
     controller/controller_gui.cpp
+    controller/controller_tui.cpp
     controller/widget/widget.cpp
     controller/widget/widget_control.cpp
     controller/widget/widget_filters.cpp
@@ -167,6 +171,8 @@ target_sources(splash-${API_VERSION} PRIVATE
     ../external/imgui/imgui_draw.cpp
     ../external/imgui/imgui_widgets.cpp
     ../external/imgui/imgui.cpp
+    ../external/imtui/src/imtui-impl-ncurses.cpp
+    ../external/imtui/src/imtui-impl-text.cpp
 	../external/hap/source/hap.c
 )
 
@@ -267,6 +273,7 @@ target_link_libraries(splash-${API_VERSION} ${PORTAUDIO_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${OPENCV_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${PYTHON_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${UUID_LIBRARIES})
+target_link_libraries(splash-${API_VERSION} ${CURSES_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${SLAPS_LIBRARIES})
 
 #

@@ -5,6 +5,7 @@
 
 #include "./controller/controller_blender.h"
 #include "./controller/controller_gui.h"
+#include "./controller/controller_tui.h"
 #include "./core/link.h"
 #include "./graphics/camera.h"
 #include "./graphics/filter.h"
@@ -546,6 +547,14 @@ void Scene::setAsMaster(const string& configFilePath)
         _gui->setName("gui");
         _gui->setConfigFilePath(configFilePath);
         _objects["gui"] = _gui;
+    }
+
+    _tui = make_shared<Tui>(this);
+    if (_tui)
+    {
+        _tui->setName("tui");
+        _tui->setConfigFilePath(configFilePath);
+        _objects["tui"] = _tui;
     }
 
     _keyboard = make_shared<Keyboard>(this);

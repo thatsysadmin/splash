@@ -412,9 +412,8 @@ void Gui::mouseScroll(double /*xoffset*/, double yoffset)
 /*************/
 bool Gui::linkIt(const shared_ptr<GraphObject>& obj)
 {
-    if (dynamic_pointer_cast<Object>(obj))
+    if (auto object = dynamic_pointer_cast<Object>(obj))
     {
-        auto object = dynamic_pointer_cast<Object>(obj);
         _guiCamera->linkTo(object);
         return true;
     }
@@ -425,7 +424,7 @@ bool Gui::linkIt(const shared_ptr<GraphObject>& obj)
 /*************/
 void Gui::unlinkIt(const shared_ptr<GraphObject>& obj)
 {
-    if (dynamic_pointer_cast<Object>(obj).get() != nullptr)
+    if (dynamic_pointer_cast<Object>(obj))
         _guiCamera->unlinkFrom(obj);
 }
 
@@ -730,7 +729,8 @@ void Gui::renderSplashScreen()
     auto parentWindowSize = ImGui::GetWindowSize();
     auto parentWindowPos = ImGui::GetWindowPos();
     ImGui::SetNextWindowPos(ImVec2(parentWindowPos[0] + (parentWindowSize[0] - splashWidth) / 2.f, parentWindowPos[1] + (parentWindowSize[1] - splashHeight) / 2.f));
-    ImGui::Begin("About Splash", &isOpen, ImVec2(splashWidth, splashHeight), 1.f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    ImGui::SetNextWindowSize(ImVec2(splashWidth, splashHeight));
+    ImGui::Begin("About Splash", &isOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
     if (_splashLogo)
     {
         ImGui::Columns(2, nullptr, false);
@@ -800,7 +800,8 @@ Joystick controls (may vary with the controller):
     auto parentWindowSize = ImGui::GetWindowSize();
     auto parentWindowPos = ImGui::GetWindowPos();
     ImGui::SetNextWindowPos(ImVec2(parentWindowPos[0] + (parentWindowSize[0] - helpWidth) / 2.f, parentWindowPos[1] + 100.f));
-    ImGui::Begin("Help", &isOpen, ImVec2(helpWidth, helpHeight), 1.f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SetNextWindowSize(ImVec2(helpWidth, helpHeight));
+    ImGui::Begin("Help", &isOpen, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%s", helpText.c_str());
 
     auto& io = ImGui::GetIO();
@@ -838,7 +839,9 @@ void Gui::render()
     // Panel
     if (_isVisible)
     {
-        ImGui::Begin("Splash Control Panel", nullptr, ImVec2(900, 900), 0.97f, _windowFlags);
+        ImGui::SetNextWindowSize(ImVec2(900, 900));
+        ImGui::SetNextWindowBgAlpha(0.97f);
+        ImGui::Begin("Splash Control Panel", nullptr, _windowFlags);
         _windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse;
 
         if (_showAbout)

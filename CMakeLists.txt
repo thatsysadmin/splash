@@ -74,9 +74,10 @@ pkg_check_modules(UUID REQUIRED uuid)
 
 # Optional dependencies
 set(Python_ADDITIONAL_VERSIONS 3.4 3.5)
-find_package(PythonLibs)
 
 find_package(Doxygen)
+find_package(PythonLibs)
+find_package(Curses)
 pkg_search_module(GPHOTO libgphoto2)
 pkg_search_module(OPENCV opencv)
 pkg_search_module(JACK jack)

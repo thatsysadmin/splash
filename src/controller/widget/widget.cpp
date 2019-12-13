@@ -121,7 +121,8 @@ bool FileSelector(const string& label, string& path, bool& cancelled, const vect
     if (label.size() != 0)
         windowName += " - " + label;
 
-    ImGui::Begin(windowName.c_str(), nullptr, ImVec2(400, 600), 0.99f);
+    ImGui::SetNextWindowSize(ImVec2(400, 600));
+    ImGui::Begin(windowName.c_str(), nullptr, 0.99f);
 
     ImGui::PushItemWidth(-64.f);
     vector<FilesystemFile> fileList;

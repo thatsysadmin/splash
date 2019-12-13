@@ -31,3 +31,6 @@
 [submodule "external/flamegraph"]
 	path = external/flamegraph
 	url = https://github.com/brendangregg/FlameGraph.git
+[submodule "external/imtui"]
+	path = external/imtui
+	url = https://github.com/ggerganov/imtui.git

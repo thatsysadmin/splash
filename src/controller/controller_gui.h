@@ -219,6 +219,7 @@ class Gui : public ControllerObject
     std::shared_ptr<Texture_Image> _splashLogo{nullptr};
 
     // ImGUI related attributes
+    ImGuiContext* _imGuiContext{nullptr};
     static GLuint _imFontTextureId;
     static GLuint _imGuiShaderHandle, _imGuiVertHandle, _imGuiFragHandle;
     static GLint _imGuiTextureLocation;

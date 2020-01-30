@@ -828,6 +828,8 @@ void Gui::render()
     // Callback for dragndrop: load the dropped file
     UserInput::setCallback(UserInput::State("dragndrop"), [=](const UserInput::State& state) { setWorldAttribute("loadConfig", {state.value[0].as<string>()}); });
 
+    assert(_imGuiContext != nullptr);
+    SetCurrentContext(_imGuiContext);
     ImGuiIO& io = GetIO();
     io.MouseDrawCursor = _mouseHoveringWindow;
 
@@ -1109,6 +1111,9 @@ void Gui::initImGui(int width, int height)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Initialize ImGui
+    _imGuiContext = CreateContext();
+    assert(_imGuiContext != nullptr);
+    SetCurrentContext(_imGuiContext);
     ImGuiIO& io = GetIO();
 
     // Fonts

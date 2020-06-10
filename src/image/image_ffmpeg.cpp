@@ -793,7 +793,8 @@ void Image_FFmpeg::registerAttributes()
 {
     Image::registerAttributes();
 
-    addAttribute("bufferSize",
+    addAttribute(
+        "bufferSize",
         [&](const Values& args) {
             int64_t sizeMB = std::max(16, args[0].as<int>());
             _maximumBufferSize = sizeMB * (int64_t)1048576;

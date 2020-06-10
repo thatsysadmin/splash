@@ -26,11 +26,11 @@
 #define SPLASH_ATTRIBUTE_H
 
 #include <atomic>
-#include <condition_variable>
 #include <functional>
 #include <json/json.h>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 

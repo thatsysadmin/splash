@@ -26,6 +26,7 @@
 #define SPLASH_JSONUTILS_H
 
 #include <fstream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -55,6 +56,13 @@ bool checkAndUpgradeConfiguration(Json::Value& configuration);
  * \return Return true if everything went well
  */
 bool loadJsonFile(const std::string& filename, Json::Value& configuration);
+
+/**
+ * Convert a string to Json
+ * \param source Input Json as string
+ * \return Return the interpreted Json::Value in a std::optional
+ */
+std::optional<Json::Value> stringToJson(const std::string& source);
 
 /**
  * Helper function to convert Json::Value to Splash::Values

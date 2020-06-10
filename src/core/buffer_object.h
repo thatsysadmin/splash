@@ -26,7 +26,6 @@
 #define SPLASH_BUFFER_OBJECT_H
 
 #include <atomic>
-#include <condition_variable>
 #include <future>
 #include <json/json.h>
 #include <list>

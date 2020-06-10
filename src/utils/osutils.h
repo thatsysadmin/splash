@@ -26,7 +26,10 @@
 #define SPLASH_OSUTILS_H
 
 #include <algorithm>
+#include <dirent.h>
 #include <filesystem>
+#include <iostream>
+#include <optional>
 #include <pwd.h>
 #include <sched.h>
 #include <string>
@@ -52,7 +55,7 @@ namespace Splash
 namespace Utils
 {
 /**
- * \brief Get the current thread id
+ * Get the current thread id
  * \return Return the thread id
  */
 #if HAVE_LINUX
@@ -65,7 +68,7 @@ inline int getThreadId()
 #endif
 
 /**
- * \brief Get the CPU core count
+ * Get the CPU core count
  * \return Return the core count
  */
 inline int getCoreCount()
@@ -74,7 +77,7 @@ inline int getCoreCount()
 }
 
 /**
- * \brief Set the CPU core affinity. If one of the specified cores is not reachable, does nothing.
+ * Set the CPU core affinity. If one of the specified cores is not reachable, does nothing.
  * \param cores Vector of the target cores
  * \return Return true if all went well
  */
@@ -101,7 +104,7 @@ inline bool setAffinity(const std::vector<int>& cores)
 }
 
 /**
- * \brief Set the current thread as realtime (nice = 99, SCHED_RR)
+ * Set the current thread as realtime (nice = 99, SCHED_RR)
  * \return Return true if it was able to set the scheduling
  */
 inline bool setRealTime()
@@ -147,7 +150,7 @@ inline void toLower(std::string& input)
 }
 
 /**
- * \brief Check whether a path is a directory
+ * Check whether a path is a directory
  * \param filepath Path to test
  * \param Return true if the path is a directory
  */
@@ -157,7 +160,7 @@ inline bool isDir(const std::string& filepath)
 }
 
 /**
- * \brief Clean up a path, removing extra slashes and such
+ * Clean up a path, removing extra slashes and such
  * \param filepath Path to clean
  * \return Return the path cleaned
  */
@@ -167,7 +170,7 @@ inline std::string cleanPath(const std::string& filepath)
 }
 
 /**
- * \brief Get the current user home path
+ * Get the current user home path
  * \return Return the home path
  */
 inline std::string getHomePath()
@@ -180,7 +183,7 @@ inline std::string getHomePath()
 }
 
 /**
- * \brief Get the directory path from the file path.
+ * Get the directory path from the file path.
  * \param filepath File path
  * \param configPath Configuration path
  * \return Return the path
@@ -218,7 +221,40 @@ inline std::string getCurrentWorkingDirectory()
 }
 
 /**
- * \brief Extract the filename from a file path
+ * Get the directory path from an executable file path
+ * \param filepath Executable path
+ * \return Return the executable directory
+ */
+inline std::string getPathFromExecutablePath(const std::string& filepath)
+{
+    auto path = filepath;
+
+    bool isRelative = path.find(".") == 0 ? true : false;
+    bool isAbsolute = path.find("/") == 0 ? true : false;
+    auto fullPath = std::string("");
+
+    size_t slashPos = path.rfind("/");
+
+    if (isAbsolute)
+    {
+        fullPath = path.substr(0, slashPos) + "/";
+        fullPath = cleanPath(fullPath);
+    }
+    else if (isRelative)
+    {
+        auto workingPath = getCurrentWorkingDirectory();
+        if (path.find("/") == 1)
+            fullPath = workingPath + path.substr(1, slashPos) + "/";
+        else if (path.find("/") == 2)
+            fullPath = workingPath + "/" + path.substr(0, slashPos) + "/";
+        fullPath = cleanPath(fullPath);
+    }
+
+    return fullPath;
+}
+
+/**
+ * Extract the filename from a file path
  * \param filepath File path
  * \return Return the file name
  */
@@ -240,7 +276,7 @@ inline std::string getFullPathFromFilePath(const std::string& filepath, const st
 }
 
 /**
- * \brief Get a list of the entries in a directory
+ * Get a list of the files in a directory
  * \param path Directory path
  * \return Return the entries list
  * Note that an entry can be a file or a directory
@@ -261,7 +297,7 @@ inline std::vector<std::string> listDirContent(const std::string& path)
 }
 
 /**
- * \brief Get the file descriptor from a file path.
+ * Get the file descriptor from a file path.
  * \param filepath File path to look for
  * \return Return the file descriptor, or 0 if it was not able to find the file in the list of opened file.
  */
@@ -289,7 +325,7 @@ inline int getFileDescriptorForOpenedFile(const std::string& filepath)
 }
 
 /**
- * \brief Get the path of the currently executed file
+ * Get the path of the currently executed file
  * \return Return the path as a string
  */
 inline std::string getCurrentExecutablePath()
@@ -308,9 +344,31 @@ inline std::string getCurrentExecutablePath()
     return currentExePath;
 }
 
+/**
+ * Read a text file given its path
+ * \param path Path to the text file to read
+ * \return Return the content of the file as a string
+ */
+inline std::optional<std::string> readTextFile(const std::string& path)
+{
+    std::ifstream in(path, std::ios::in | std::ios::binary);
+    if (in)
+    {
+        std::string file;
+        in.seekg(0, std::ios::end);
+        file.resize(in.tellg());
+        in.seekg(0, std::ios::beg);
+        in.read(&file[0], file.size());
+        in.close();
+        return file;
+    }
+
+    return {};
+}
+
 #if HAVE_SHMDATA
 /**
- * \brief Shmdata logger dedicated to splash
+ * Shmdata logger dedicated to splash
  */
 class ShmdataLogger : public shmdata::AbstractLogger
 {
@@ -326,7 +384,7 @@ class ShmdataLogger : public shmdata::AbstractLogger
 
 #if HAVE_CALIMIRO
 /**
- * \brief Calimiro logger dedicated to splash
+ * Calimiro logger dedicated to splash
  */
 class CalimiroLogger : public calimiro::AbstractLogger
 {

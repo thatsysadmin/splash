@@ -201,21 +201,34 @@ bool loadJsonFile(const std::string& filename, Json::Value& configuration)
         return false;
     }
 
+    auto config = stringToJson(contents);
+    if (!config)
+    {
+        Log::get() << Log::WARNING << __FUNCTION__ << " - Unable to parse file " << filename << Log::endl;
+        return false;
+    }
+
+    configuration = config.value();
+    return true;
+}
+
+/**************/
+std::optional<Json::Value> stringToJson(const std::string& source)
+{
     Json::Value config;
     Json::CharReaderBuilder builder;
     std::unique_ptr<Json::CharReader> const reader(builder.newCharReader());
     std::string errs;
 
-    bool success = reader->parse(contents.c_str(), contents.c_str() + contents.size(), &config, &errs);
+    bool success = reader->parse(source.c_str(), source.c_str() + source.size(), &config, &errs);
     if (!success)
     {
-        Log::get() << Log::WARNING << __FUNCTION__ << " - Unable to parse file " << filename << Log::endl;
+        Log::get() << Log::WARNING << __FUNCTION__ << " - Unable to convert string to Json:\n" << source << "\n";
         Log::get() << Log::WARNING << errs << Log::endl;
-        return false;
+        return {};
     }
 
-    configuration = config;
-    return true;
+    return config;
 }
 
 /*************/

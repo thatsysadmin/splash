@@ -50,6 +50,13 @@ class FilterCustom : public Filter
     FilterCustom(FilterCustom&&) = default;
     FilterCustom& operator=(const FilterCustom&) = delete;
 
+    /**
+     * Set the filter fragment shader. Automatically adds attributes corresponding to the uniforms
+     * \param source Source fragment shader
+     * \return Return true if the shader is valid
+     */
+    bool setFilterSource(const std::string& source);
+
   private:
     std::string _shaderSource{""};                            //!< User defined fragment shader filter
     std::string _shaderSourceFile{""};                        //!< User defined fragment shader filter source file
@@ -66,13 +73,6 @@ class FilterCustom : public Filter
      * Register attributes related to the default shader
      */
     void registerDefaultShaderAttributes() override{};
-
-    /**
-     * Set the filter fragment shader. Automatically adds attributes corresponding to the uniforms
-     * \param source Source fragment shader
-     * \return Return true if the shader is valid
-     */
-    bool setFilterSource(const std::string& source);
 };
 
 } // namespace Splash

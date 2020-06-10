@@ -3,6 +3,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <ltc.h>
+
 #include "./utils/log.h"
 #include "./utils/timer.h"
 

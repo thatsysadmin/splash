@@ -30,7 +30,6 @@
 #include <thread>
 #include <vector>
 
-#include <ltc.h>
 #include <portaudio.h>
 
 #include "./core/constants.h"

@@ -6,7 +6,7 @@ namespace Splash
 Mouse::Mouse(RootObject* root)
     : UserInput(root)
 {
-    _type = "mouse";
+    _type = SPLASH_SCENE_OBJ_MOUSE;
 }
 
 /*************/

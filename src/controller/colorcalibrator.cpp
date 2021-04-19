@@ -34,7 +34,7 @@ void gslErrorHandler(const char* reason, const char* /*file*/, int /*line*/, int
 ColorCalibrator::ColorCalibrator(RootObject* root)
     : ControllerObject(root)
 {
-    _type = "colorCalibrator";
+    _type = SPLASH_SCENE_OBJ_COLORCALIBRATOR;
     registerAttributes();
 
     // Set up the calibration strategy

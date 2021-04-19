@@ -22,7 +22,7 @@ namespace Splash
 GeometricCalibrator::GeometricCalibrator(RootObject* root)
     : ControllerObject(root)
 {
-    _type = "geometricCalibrator";
+    _type = SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR;
     _renderingPriority = GraphObject::Priority::POST_WINDOW;
     registerAttributes();
 }
@@ -148,7 +148,7 @@ void GeometricCalibrator::setupCalibrationState(const GeometricCalibrator::Confi
     {
         for (const auto& objectName : state.objectLinks.at(windowName))
         {
-            if (state.objectTypes.at(objectName) == "gui")
+            if (state.objectTypes.at(objectName) == SPLASH_SCENE_OBJ_GUI)
                 continue;
             setWorldAttribute("unlink", {objectName, windowName});
         }
@@ -219,7 +219,7 @@ std::optional<GeometricCalibrator::Calibration> GeometricCalibrator::calibration
             continue;
         }
         _nextPosition = false;
-        setObjectAttribute("gui", "hide", {true});
+        setObjectAttribute(SPLASH_SCENE_OBJ_GUI, "hide", {true});
 
         // If an error happens while capturing this position, this flag will be set to true
         bool abortCurrentPosition = false;
@@ -399,7 +399,7 @@ std::optional<GeometricCalibrator::Calibration> GeometricCalibrator::calibration
         workspace.exportMatrixToYaml(mergedProjectors.value(), "decoded_matrix/pos_" + std::to_string(positionIndex));
 
         ++positionIndex;
-        setObjectAttribute("gui", "show", {});
+        setObjectAttribute(SPLASH_SCENE_OBJ_GUI, "show", {});
     }
     _finalizeCalibration = false;
 
@@ -437,7 +437,7 @@ std::optional<GeometricCalibrator::Calibration> GeometricCalibrator::calibration
     auto geometryMeshToWrite = geometryMeshClean;
     if (_computeTexCoord)
     {
-        const auto texCoordGenerator = std::dynamic_pointer_cast<TexCoordGenerator>(getObjectPtr("texCoordGenerator"));
+        const auto texCoordGenerator = std::dynamic_pointer_cast<TexCoordGenerator>(getObjectPtr(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR));
         auto geometryTexCoord = texCoordGenerator->generateTexCoordFromGeometry(geometryMeshClean);
         geometryMeshToWrite = geometryTexCoord;
     }

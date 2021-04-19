@@ -43,7 +43,7 @@ size_t Gui::_imGuiVboMaxSize = 20000;
 Gui::Gui(std::shared_ptr<GlWindow> w, RootObject* s)
     : ControllerObject(s)
 {
-    _type = "gui";
+    _type = SPLASH_SCENE_OBJ_GUI;
     _renderingPriority = Priority::GUI;
 
     _scene = dynamic_cast<Scene*>(s);
@@ -129,24 +129,24 @@ void Gui::unicodeChar(unsigned int unicodeChar)
 /*************/
 void Gui::computeBlending(bool once)
 {
-    auto blendingState = getObjectAttribute("blender", "mode");
+    auto blendingState = getObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "mode");
     std::string previousState = "none";
     if (!blendingState.empty())
         previousState = blendingState[0].as<std::string>();
 
     if (previousState != "none")
     {
-        setObjectAttribute("blender", "mode", {"none"});
+        setObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "mode", {"none"});
         _blendingActive = false;
     }
     else if (once)
     {
-        setObjectAttribute("blender", "mode", {"once"});
+        setObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "mode", {"once"});
         _blendingActive = true;
     }
     else
     {
-        setObjectAttribute("blender", "mode", {"continuous"});
+        setObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "mode", {"continuous"});
         _blendingActive = true;
     }
 }
@@ -549,15 +549,15 @@ void Gui::drawMainTab()
     if (ImGui::InputFloat("Blending precision", &blendPrecision, 0.01f, 0.04f, 3, ImGuiInputTextFlags_EnterReturnsTrue))
         setObjectsOfType("camera", "blendPrecision", {blendPrecision});
 
-    auto depthAwareBlendingValue = getObjectAttribute("blender", "depthAwareBlending");
+    auto depthAwareBlendingValue = getObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "depthAwareBlending");
     if (!depthAwareBlendingValue.empty())
     {
         auto depthAwareBlending = depthAwareBlendingValue[0].as<bool>();
         if (ImGui::Checkbox("Activate depth-aware blending", &depthAwareBlending))
-            setObjectAttribute("blender", "depthAwareBlending", {depthAwareBlending});
+            setObjectAttribute(SPLASH_SCENE_OBJ_BLENDER, "depthAwareBlending", {depthAwareBlending});
         if (ImGui::IsItemHovered())
         {
-            auto description = getObjectAttributeDescription("blender", "depthAwareBlending");
+            auto description = getObjectAttributeDescription(SPLASH_SCENE_OBJ_BLENDER, "depthAwareBlending");
             if (!description.empty())
                 ImGui::SetTooltip("%s", description[0].as<std::string>().c_str());
         }
@@ -830,7 +830,7 @@ void Gui::render()
     using namespace ImGui;
 
     // Callback for dragndrop: load the dropped file
-    UserInput::setCallback(UserInput::State("dragndrop"), [=](const UserInput::State& state) { setWorldAttribute("loadConfig", {state.value[0].as<std::string>()}); });
+    UserInput::setCallback(UserInput::State(SPLASH_SCENE_OBJ_DRAGNDROP), [=](const UserInput::State& state) { setWorldAttribute("loadConfig", {state.value[0].as<std::string>()}); });
 
     ImGuiIO& io = GetIO();
     io.MouseDrawCursor = _mouseHoveringWindow;

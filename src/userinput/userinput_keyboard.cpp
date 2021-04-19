@@ -6,7 +6,7 @@ namespace Splash
 Keyboard::Keyboard(RootObject* root)
     : UserInput(root)
 {
-    _type = "keyboard";
+    _type = SPLASH_SCENE_OBJ_KEYBOARD;
 }
 
 /*************/

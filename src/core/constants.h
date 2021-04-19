@@ -38,6 +38,16 @@
 
 #define SPLASH_CAMERA_LINK "__camera_link"
 
+#define SPLASH_SCENE_OBJ_BLENDER "blender"
+#define SPLASH_SCENE_OBJ_JOYSTICK "joystick"
+#define SPLASH_SCENE_OBJ_GUI "gui"
+#define SPLASH_SCENE_OBJ_KEYBOARD "keyboard"
+#define SPLASH_SCENE_OBJ_MOUSE "mouse"
+#define SPLASH_SCENE_OBJ_DRAGNDROP "dragndrop"
+#define SPLASH_SCENE_OBJ_COLORCALIBRATOR "colorCalibrator"
+#define SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR "geometricCalibrator"
+#define SPLASH_SCENE_OBJ_TEXCOORDGENERATOR "texCoordGenerator"
+
 #define GL_VENDOR_NVIDIA "NVIDIA Corporation"
 #define GL_VENDOR_AMD "X.Org"
 #define GL_VENDOR_INTEL "Intel"

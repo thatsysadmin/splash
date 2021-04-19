@@ -77,8 +77,8 @@ Scene::Scene(Context context)
     _blender = std::make_shared<Blender>(this);
     if (_blender)
     {
-        _blender->setName("blender");
-        _objects["blender"] = _blender;
+        _blender->setName(SPLASH_SCENE_OBJ_BLENDER);
+        _objects[SPLASH_SCENE_OBJ_BLENDER] = _blender;
     }
 
     init(_name);
@@ -209,17 +209,16 @@ void Scene::unlink(const std::shared_ptr<GraphObject>& first, const std::shared_
 /*************/
 void Scene::setEnableJoystickInput(bool enable)
 {
-    static std::string joystickName = "joystick";
     if (!_joystick && enable)
     {
         _joystick = std::make_shared<Joystick>(this);
-        _joystick->setName(joystickName);
-        _objects[_joystick->getName()] = _joystick;
+        _joystick->setName(SPLASH_SCENE_OBJ_JOYSTICK);
+        _objects[SPLASH_SCENE_OBJ_JOYSTICK] = _joystick;
     }
     else if (_joystick && !enable)
     {
         _joystick.reset();
-        if (auto objectsIt = _objects.find(joystickName); objectsIt != _objects.end())
+        if (auto objectsIt = _objects.find(SPLASH_SCENE_OBJ_JOYSTICK); objectsIt != _objects.end())
             _objects.erase(objectsIt);
     }
 }
@@ -501,9 +500,9 @@ void Scene::setAsMaster(const std::string& configFilePath)
     _gui = std::make_shared<Gui>(_mainWindow, this);
     if (_gui)
     {
-        _gui->setName("gui");
+        _gui->setName(SPLASH_SCENE_OBJ_GUI);
         _gui->setConfigFilePath(configFilePath);
-        _objects["gui"] = _gui;
+        _objects[SPLASH_SCENE_OBJ_GUI] = _gui;
     }
 
     _keyboard = std::make_shared<Keyboard>(this);
@@ -512,35 +511,35 @@ void Scene::setAsMaster(const std::string& configFilePath)
 
     if (_keyboard)
     {
-        _keyboard->setName("keyboard");
-        _objects[_keyboard->getName()] = _keyboard;
+        _keyboard->setName(SPLASH_SCENE_OBJ_KEYBOARD);
+        _objects[SPLASH_SCENE_OBJ_KEYBOARD] = _keyboard;
     }
     if (_mouse)
     {
-        _mouse->setName("mouse");
-        _objects["mouse"] = _mouse;
+        _mouse->setName(SPLASH_SCENE_OBJ_MOUSE);
+        _objects[SPLASH_SCENE_OBJ_MOUSE] = _mouse;
     }
     if (_dragndrop)
     {
-        _dragndrop->setName("dragndrop");
-        _objects[_dragndrop->getName()] = _dragndrop;
+        _dragndrop->setName(SPLASH_SCENE_OBJ_DRAGNDROP);
+        _objects[SPLASH_SCENE_OBJ_DRAGNDROP] = _dragndrop;
     }
 
 #if HAVE_GPHOTO and HAVE_OPENCV
     // Initialize the color calibration object
     _colorCalibrator = std::make_shared<ColorCalibrator>(this);
-    _colorCalibrator->setName("colorCalibrator");
-    _objects["colorCalibrator"] = _colorCalibrator;
+    _colorCalibrator->setName(SPLASH_SCENE_OBJ_COLORCALIBRATOR);
+    _objects[SPLASH_SCENE_OBJ_COLORCALIBRATOR] = _colorCalibrator;
 #endif
 
 #if HAVE_CALIMIRO
     _geometricCalibrator = std::make_shared<GeometricCalibrator>(this);
-    _geometricCalibrator->setName("geometricCalibrator");
-    _objects["geometricCalibrator"] = _geometricCalibrator;
+    _geometricCalibrator->setName(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR);
+    _objects[SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR] = _geometricCalibrator;
 
     _texCoordGenerator = std::make_shared<TexCoordGenerator>(this);
-    _texCoordGenerator->setName("texCoordGenerator");
-    _objects["texCoordGenerator"] = _texCoordGenerator;
+    _texCoordGenerator->setName(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR);
+    _objects[SPLASH_SCENE_OBJ_TEXCOORDGENERATOR] = _texCoordGenerator;
 #endif
 }
 

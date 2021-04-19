@@ -248,6 +248,7 @@ class Scene : public RootObject
     static std::string _glRenderer;
 
     bool _runInBackground{false}; //!< If true, no window will be created
+    bool _threadedTextureUpload{false}; //!< If true, texture upload is done in a separate thread
     std::atomic_bool _started{false};
 
     bool _isMaster{false}; //!< Set to true if this is the master Scene of the current config
@@ -260,6 +261,16 @@ class Scene : public RootObject
     // NV Swap group specific
     GLuint _maxSwapGroups{0};
     GLuint _maxSwapBarriers{0};
+
+    // Texture upload
+    std::future<void> _textureUploadFuture{};
+    std::shared_ptr<GlWindow> _textureUploadWindow{nullptr};
+    std::atomic_bool _textureUploadDone{false};
+    Spinlock _textureMutex;
+    GLsync _textureUploadFence{nullptr};
+    GLsync _cameraDrawnFence{nullptr};
+    std::condition_variable _doUploadTexturesCondition{};
+    std::mutex _doUploadTexturesMutex{};
 
     static std::vector<std::string> _ghostableTypes;
 
@@ -302,6 +313,11 @@ class Scene : public RootObject
      * Initialize the tree
      */
     void initializeTree();
+
+    /**
+     * Texture upload loop
+     */
+    void textureUploadLoop();
 
     /**
      *  Update the various inputs (mouse, keyboard...)

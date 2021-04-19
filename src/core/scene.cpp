@@ -245,30 +245,34 @@ void Scene::remove(const std::string& name)
 void Scene::render()
 {
     PROFILEGL(GL_TIMING_TIME_PER_FRAME);
-    // We want to have as much time as possible for uploading the textures,
-    // so we start it right now.
-    bool expectedAtomicValue = false;
-    if (!_doUploadTextures.compare_exchange_strong(expectedAtomicValue, false, std::memory_order_acq_rel))
+
+    if (!_threadedTextureUpload)
     {
-        TracyGpuZone("Upload textures");
-        ZoneScopedN("Upload textures");
-        PROFILEGL(GL_TIMING_TEXTURES_UPLOAD);
-
-        Timer::get() << "textureUpload";
-        std::lock_guard<std::recursive_mutex> lockObjects(_objectsMutex);
-        for (auto& obj : _objects)
+        // We want to have as much time as possible for uploading the textures,
+        // so we start it right now.
+        bool expectedAtomicValue = false;
+        if (!_doUploadTextures.compare_exchange_strong(expectedAtomicValue, false, std::memory_order_acq_rel))
         {
-            auto texture = std::dynamic_pointer_cast<Texture>(obj.second);
-            if (texture)
-            {
-                TracyGpuZone("Uploading a texture");
-                ZoneScopedN("Uploading a texture");
-                ZoneName(obj.first.c_str(), obj.first.size());
+            TracyGpuZone("Upload textures");
+            ZoneScopedN("Upload textures");
+            PROFILEGL(GL_TIMING_TEXTURES_UPLOAD);
 
-                texture->update();
+            Timer::get() << "textureUpload";
+            std::lock_guard<std::recursive_mutex> lockObjects(_objectsMutex);
+            for (auto& obj : _objects)
+            {
+                auto texture = std::dynamic_pointer_cast<Texture>(obj.second);
+                if (texture)
+                {
+                    TracyGpuZone("Uploading a texture");
+                    ZoneScopedN("Uploading a texture");
+                    ZoneName(obj.first.c_str(), obj.first.size());
+
+                    texture->update();
+                }
             }
+            Timer::get() >> "textureUpload";
         }
-        Timer::get() >> "textureUpload";
     }
 
     {
@@ -321,10 +325,28 @@ void Scene::render()
 
         // Update and render the objects
         // See GraphObject::getRenderingPriority() for precision about priorities
+        bool firstTextureSync = true; // Sync with the texture upload the first time we need texutres
+        bool firstWindowSync = true; // Sync with the texture upload the last time we need textures
+        std::unique_lock<Spinlock> textureLock(_textureMutex, std::defer_lock);
+
         for (const auto& objPriority : objectList)
         {
             TracyGpuZone("Render bin");
             ZoneScopedN("Render bin");
+
+            // If the objects need some textures, we need to sync
+            if (firstTextureSync && objPriority.first > GraphObject::Priority::BLENDING && objPriority.first < GraphObject::Priority::POST_CAMERA)
+            {
+                // We wait for textures to be uploaded, and we prevent any upload while
+                // rendering cameras to prevent tearing
+                textureLock.lock();
+                if (glIsSync(_textureUploadFence) == GL_TRUE)
+                {
+                    glWaitSync(_textureUploadFence, 0, GL_TIMEOUT_IGNORED);
+                    glDeleteSync(_textureUploadFence);
+                }
+                firstTextureSync = false;
+            }
 
             if (objPriority.second.size() != 0)
             {
@@ -358,6 +380,16 @@ void Scene::render()
 
             if (objPriority.second.size() != 0)
                 Timer::get() >> objPriority.second[0]->getType();
+
+            if (firstWindowSync && objPriority.first >= GraphObject::Priority::POST_CAMERA)
+            {
+                if (glIsSync(_cameraDrawnFence) == GL_TRUE)
+                    glDeleteSync(_cameraDrawnFence);
+                _cameraDrawnFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+                if (textureLock.owns_lock())
+                    textureLock.unlock();
+                firstWindowSync = false;
+            }
         }
     }
 
@@ -404,7 +436,12 @@ void Scene::run()
 
     while (_isRunning)
     {
-        FrameMarkStart("Scene");
+        if (_threadedTextureUpload && !_textureUploadFuture.valid())
+            _textureUploadFuture = std::async(std::launch::async, [&]() { textureUploadLoop(); });
+        else if (!_threadedTextureUpload && _textureUploadFuture.valid())
+            _textureUploadFuture.wait();
+
+        FrameMarkStart("Main loop");
         ZoneScopedN("Main loop");
         ZoneName(_name.c_str(), _name.size());
 
@@ -462,11 +499,14 @@ void Scene::run()
             Timer::get() >> "tree_propagate";
         }
 
-        FrameMarkEnd("Scene");
+        FrameMarkEnd("Main loop");
     }
     _mainWindow->releaseContext();
 
     signalBufferObjectUpdated();
+
+    if (_textureUploadFuture.valid())
+        _textureUploadFuture.wait();
 
     // Clean the tree from anything related to this Scene
     _tree.cutBranchAt("/" + _name);
@@ -476,6 +516,92 @@ void Scene::run()
     ProfilerGL::get().processTimings();
     ProfilerGL::get().processFlamegraph("/tmp/splash_profiling_data_" + _name);
 #endif
+}
+
+/*************/
+void Scene::textureUploadLoop()
+{
+    _textureUploadWindow->setAsCurrentContext();
+
+    while (_isRunning)
+    {
+        if (!_started)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            continue;
+        }
+
+        waitSignalBufferObjectUpdated();
+
+        FrameMarkStart("Texture upload");
+        ZoneScopedN("Texture upload");
+        PROFILEGL(GL_TIMING_TEXTURES_UPLOAD);
+
+        Timer::get() >> "Texture loop";
+        Timer::get() << "Texture loop";
+
+        if (!_isRunning || !_threadedTextureUpload)
+            break;
+
+        {
+            std::vector<std::shared_ptr<Texture>> textures;
+            bool expectedAtomicValue = false;
+            if (_objectsCurrentlyUpdated.compare_exchange_strong(expectedAtomicValue, true, std::memory_order_acquire))
+            {
+                std::lock_guard<std::recursive_mutex> lockObjects(_objectsMutex);
+                for (auto& obj : _objects)
+                {
+                    auto texture = std::dynamic_pointer_cast<Texture>(obj.second);
+                    if (texture)
+                        textures.emplace_back(texture);
+                }
+                _objectsCurrentlyUpdated.store(false, std::memory_order_release);
+            }
+
+            // Wait for Scene's signal that the texture can be uploaded
+            expectedAtomicValue = true;
+            if (!_doUploadTextures.compare_exchange_strong(expectedAtomicValue, false, std::memory_order_acq_rel))
+            {
+                std::unique_lock<std::mutex> lockCondition(_doUploadTexturesMutex);
+                _doUploadTexturesCondition.wait_for(lockCondition, std::chrono::milliseconds(50));
+                _doUploadTextures = false;
+            }
+
+            std::unique_lock<Spinlock> lockTexture(_textureMutex);
+
+            if (glIsSync(_cameraDrawnFence) == GL_TRUE)
+            {
+                glWaitSync(_cameraDrawnFence, 0, GL_TIMEOUT_IGNORED);
+                glDeleteSync(_cameraDrawnFence);
+            }
+
+            Timer::get() << "Textures upload";
+
+            for (auto& texture : textures)
+                texture->update();
+
+            if (glIsSync(_textureUploadFence) == GL_TRUE)
+                glDeleteSync(_textureUploadFence);
+            _textureUploadFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+            Timer::get() >> "Textures uploads";
+        }
+
+        ProfilerGL::get().gatherTimings();
+        ProfilerGL::get().processTimings();
+        const auto glTimings = ProfilerGL::get().getTimings();
+        for (const auto& threadTimings : glTimings)
+            for (const auto& glTiming : threadTimings.second)
+                Timer::get().setDuration(GL_TIMING_PREFIX + glTiming.getScope(), glTiming.getDuration() / 1000.0);
+    #ifndef PROFILE_GPU
+        ProfilerGL::get().clearTimings();
+    #endif
+
+        FrameMarkEnd("Texture upload");
+        TracyGpuCollect;
+    }
+
+    _textureUploadWindow->releaseContext();
 }
 
 /*************/
@@ -701,6 +827,8 @@ void Scene::init(const std::string& name)
     Log::get() << Log::MESSAGE << "Scene::" << __FUNCTION__ << " - GL vendor: " << _glVendor << Log::endl;
     Log::get() << Log::MESSAGE << "Scene::" << __FUNCTION__ << " - GL renderer: " << _glRenderer << Log::endl;
 
+    _threadedTextureUpload = _glVendor == GL_VENDOR_NVIDIA;
+
 // Activate GL debug messages
 #ifdef DEBUGGL
     glDebugMessageCallback(Scene::glMsgCallback, (void*)this);
@@ -723,6 +851,8 @@ void Scene::init(const std::string& name)
     }
 #endif
     _mainWindow->releaseContext();
+
+    _textureUploadWindow = getNewSharedWindow();
 
     // Create the link and connect to the World
     _link = std::make_unique<Link>(this, name);
@@ -998,7 +1128,9 @@ void Scene::registerAttributes()
 
     addAttribute("uploadTextures",
         [&](const Values& /*args*/) {
+            std::unique_lock<std::mutex> lockCondition(_doUploadTexturesMutex);
             _doUploadTextures = true;
+            _doUploadTexturesCondition.notify_all();
             return true;
         },
         {});
@@ -1093,6 +1225,16 @@ void Scene::registerAttributes()
         [&]() -> Values { return {(int)_swapInterval}; },
         {'i'});
     setAttributeDescription("swapInterval", "Set the interval between two video frames. 1 is synced, 0 is not, -1 to sync when possible");
+
+    addAttribute(
+        "threadedTextureUpload",
+        [&](const Values& args) {
+            _threadedTextureUpload = args[0].as<bool>();
+            return true;
+        },
+        [&]() -> Values { return {_threadedTextureUpload}; },
+        {'b'});
+    setAttributeDescription("threadedTextureUpload", "Activate threaded texture upload, This can cause freezes on some hardware");
 }
 
 /*************/

@@ -8,7 +8,7 @@ namespace Splash
 DragNDrop::DragNDrop(RootObject* root)
     : UserInput(root)
 {
-    _type = SPLASH_SCENE_OBJ_DRAGNDROP;
+    _type = SPLASH_GRAPH_TYPE_DRAGNDROP;
     _updateRate = 10;
 }
 

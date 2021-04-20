@@ -14,7 +14,7 @@ namespace Splash
 Blender::Blender(RootObject* root)
     : ControllerObject(root)
 {
-    _type = SPLASH_SCENE_OBJ_BLENDER;
+    _type = SPLASH_GRAPH_TYPE_BLENDER;
     _renderingPriority = Priority::BLENDING;
     registerAttributes();
 }

@@ -8,7 +8,7 @@ namespace Splash
 Joystick::Joystick(RootObject* root)
     : UserInput(root)
 {
-    _type = SPLASH_SCENE_OBJ_JOYSTICK;
+    _type = SPLASH_GRAPH_TYPE_JOYSTICK;
 }
 
 /*************/

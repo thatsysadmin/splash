@@ -44,39 +44,39 @@ void GuiCalibration::render()
 /*************/
 void GuiCalibration::renderGeometricCalibration(ImVec2& availableSize)
 {
-    assert(getObjectPtr(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR) != nullptr);
+    assert(getObjectPtr(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR) != nullptr);
 
     // Header
     ImGui::Text("Geometric Calibration");
-    ImGui::Text("Positions captured: %i (recommended: 3+)", getObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "positionCount")[0].as<int>());
+    ImGui::Text("Positions captured: %i (recommended: 3+)", getObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "positionCount")[0].as<int>());
 
     // Settings
-    auto computeTexCoord = getObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "computeTexCoord")[0].as<bool>();
+    auto computeTexCoord = getObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "computeTexCoord")[0].as<bool>();
     if (ImGui::Checkbox("Compute Texture Coordinates", &computeTexCoord))
-        setObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "computeTexCoord", {computeTexCoord});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "computeTexCoord", {computeTexCoord});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Compute texture coordinates during mesh generation");
 
     // Calibration actions
     if (ImGui::Button("Start calibration", ImVec2(availableSize.x * 0.5f - 12.f, 32.f)))
-        setObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "calibrate", {});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "calibrate", {});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Enter the calibration mode");
 
     ImGui::SameLine();
     if (ImGui::Button("Capture new position", ImVec2(availableSize.x * 0.5f - 12.f, 32.f)))
-        setObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "nextPosition", {});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "nextPosition", {});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Capture the patterns for the current camera position");
 
     if (ImGui::Button("Finalize calibration", ImVec2(availableSize.x * 0.5f - 12.f, 32.f)))
-        setObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "finalizeCalibration", {});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "finalizeCalibration", {});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Compute calibration from the captured patterns");
 
     ImGui::SameLine();
     if (ImGui::Button("Abort calibration", ImVec2(availableSize.x * 0.5f - 12.f, 32.f)))
-        setObjectAttribute(SPLASH_SCENE_OBJ_GEOMETRICCALIBRATOR, "abortCalibration", {});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR, "abortCalibration", {});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Abort the calibration process");
 }
@@ -84,7 +84,7 @@ void GuiCalibration::renderGeometricCalibration(ImVec2& availableSize)
 /*************/
 void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
 {
-    assert(getObjectPtr(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR) != nullptr);
+    assert(getObjectPtr(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR) != nullptr);
 
     // Header
     ImGui::Text("Automatic texture coordinates generation");
@@ -92,7 +92,7 @@ void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
     // Settings
     ImGui::Text("Projection type: ");
     ImGui::SameLine();
-    auto tmpCurrentMethod = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "method")[0].as<std::string>();
+    auto tmpCurrentMethod = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "method")[0].as<std::string>();
     if (ImGui::BeginCombo("##TexCoord method", tmpCurrentMethod.c_str()))
     {
         for (const auto& method : _texCoordMethodsList)
@@ -101,7 +101,7 @@ void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
             if (ImGui::Selectable(method.c_str(), isSelected))
             {
                 tmpCurrentMethod = method;
-                setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "method", {tmpCurrentMethod});
+                setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "method", {tmpCurrentMethod});
             }
             if (isSelected)
                 ImGui::SetItemDefaultFocus();
@@ -113,41 +113,41 @@ void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
         calimiro::TexCoordUtils::getTexCoordMethodTitle(_stringToMethod[tmpCurrentMethod]).c_str(),
         calimiro::TexCoordUtils::getTexCoordMethodDescription(_stringToMethod[tmpCurrentMethod]).c_str());
 
-    auto tmpCameraPositionValue = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "eyePosition");
+    auto tmpCameraPositionValue = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "eyePosition");
     std::array<float, 3> tmpCameraPosition{tmpCameraPositionValue[0].as<float>(), tmpCameraPositionValue[1].as<float>(), tmpCameraPositionValue[2].as<float>()};
     if (ImGui::InputFloat3("Eye position", tmpCameraPosition.data(), 5, ImGuiInputTextFlags_None))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "eyePosition", {tmpCameraPosition[0], tmpCameraPosition[1], tmpCameraPosition[2]});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "eyePosition", {tmpCameraPosition[0], tmpCameraPosition[1], tmpCameraPosition[2]});
 
-    auto tmpCameraOrientationValue = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "eyeOrientation");
+    auto tmpCameraOrientationValue = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "eyeOrientation");
     std::array<float, 3> tmpCameraOrientation{tmpCameraOrientationValue[0].as<float>(), tmpCameraOrientationValue[1].as<float>(), tmpCameraOrientationValue[2].as<float>()};
     if (ImGui::InputFloat3("Eye orientation", tmpCameraOrientation.data(), 5, ImGuiInputTextFlags_None))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "eyeOrientation", {tmpCameraOrientation[0], tmpCameraOrientation[1], tmpCameraOrientation[2]});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "eyeOrientation", {tmpCameraOrientation[0], tmpCameraOrientation[1], tmpCameraOrientation[2]});
 
     if (ImGui::Button("Normalize orientation", ImVec2(availableSize.x * 0.5f - 12.f, 24.f)))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "normalizeEyeOrientation", {});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "normalizeEyeOrientation", {});
 
-    auto replaceMesh = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "replaceMesh")[0].as<bool>();
+    auto replaceMesh = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "replaceMesh")[0].as<bool>();
     if (ImGui::Checkbox("Replace mesh", &replaceMesh))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "replaceMesh", {replaceMesh});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "replaceMesh", {replaceMesh});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Replace the selected mesh with the new one with computed texture coordinates");
 
-    auto tmpHorizonRotation = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "horizonRotation")[0].as<float>();
+    auto tmpHorizonRotation = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "horizonRotation")[0].as<float>();
     if (ImGui::InputFloat("Horizon (degrees)", &tmpHorizonRotation, 5, ImGuiInputTextFlags_None))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "horizonRotation", {tmpHorizonRotation});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "horizonRotation", {tmpHorizonRotation});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Additional rotation to align texture coordinates with horizon");
 
-    auto flipHorizontal = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "flipHorizontal")[0].as<bool>();
+    auto flipHorizontal = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "flipHorizontal")[0].as<bool>();
     if (ImGui::Checkbox("Flip horizontal", &flipHorizontal))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "flipHorizontal", {flipHorizontal});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "flipHorizontal", {flipHorizontal});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Mirror the texture coordinates on the horizontal axis");
 
     ImGui::SameLine();
-    auto flipVertical = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "flipVertical")[0].as<bool>();
+    auto flipVertical = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "flipVertical")[0].as<bool>();
     if (ImGui::Checkbox("Flip vertical", &flipVertical))
-        setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "flipVertical", {flipVertical});
+        setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "flipVertical", {flipVertical});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Mirror the texture coordinates on the vertical axis");
 
@@ -155,9 +155,9 @@ void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
     if (_stringToMethod[tmpCurrentMethod] == calimiro::TexCoordUtils::texCoordMethod::EQUIRECTANGULAR ||
         _stringToMethod[tmpCurrentMethod] == calimiro::TexCoordUtils::texCoordMethod::DOMEMASTER)
     {
-        auto tmpFov = getObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "fov")[0].as<float>();
+        auto tmpFov = getObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "fov")[0].as<float>();
         if (ImGui::InputFloat("Field of view (degrees)", &tmpFov, 5, ImGuiInputTextFlags_None))
-            setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "fov", {tmpFov});
+            setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "fov", {tmpFov});
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Range of modelisation of a spheric object, in degrees");
     }
@@ -168,8 +168,8 @@ void GuiCalibration::renderTexCoordCalibration(ImVec2& availableSize)
     {
         if (ImGui::Button(("Generate texture coordinates on mesh: " + mesh->getName()).c_str(), ImVec2(availableSize.x * 0.5f - 12.f, 32.f)))
         {
-            setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "meshName", {mesh->getName()});
-            setObjectAttribute(SPLASH_SCENE_OBJ_TEXCOORDGENERATOR, "generate", {});
+            setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "meshName", {mesh->getName()});
+            setObjectAttribute(SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR, "generate", {});
         }
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Generate the texture coordinates for the mesh: %s ", mesh->getName().c_str());

@@ -9,7 +9,7 @@ namespace Splash
 TexCoordGenerator::TexCoordGenerator(RootObject* root)
     : ControllerObject(root)
 {
-    _type = SPLASH_SCENE_OBJ_TEXCOORDGENERATOR;
+    _type = SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR;
     _renderingPriority = GraphObject::Priority::POST_WINDOW;
     registerAttributes();
 }

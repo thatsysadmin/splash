@@ -189,7 +189,7 @@ bool Factory::isProjectSavable(const std::string& type)
 /*************/
 void Factory::registerObjects()
 {
-    _objectBook[SPLASH_SCENE_OBJ_BLENDER] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Blender>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_BLENDER] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Blender>(root)); },
         GraphObject::Category::MISC,
         "blender",
         "Controls the blending of all the cameras.");

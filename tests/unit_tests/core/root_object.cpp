@@ -156,7 +156,7 @@ TEST_CASE("Testing RootObject serialized object set")
     CHECK_EQ(result, false);
 
     auto blenderName = "geomName";
-    root.createObject(SPLASH_SCENE_OBJ_BLENDER, blenderName);
+    root.createObject(SPLASH_GRAPH_TYPE_BLENDER, blenderName);
     result = root.setFromSerializedObject(blenderName, serializedObject);
     CHECK_EQ(result, false);
 }

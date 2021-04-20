@@ -39,13 +39,13 @@
 #define SPLASH_CAMERA_LINK "__camera_link"
 
 #define SPLASH_GRAPH_TYPE_BLENDER "blender"
-#define SPLASH_GRAPH_TYPE_JOYSTICK "joystick"
+#define SPLASH_GRAPH_TYPE_COLORCALIBRATOR "colorCalibrator"
+#define SPLASH_GRAPH_TYPE_DRAGNDROP "dragndrop"
+#define SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR "geometricCalibrator"
 #define SPLASH_GRAPH_TYPE_GUI "gui"
+#define SPLASH_GRAPH_TYPE_JOYSTICK "joystick"
 #define SPLASH_GRAPH_TYPE_KEYBOARD "keyboard"
 #define SPLASH_GRAPH_TYPE_MOUSE "mouse"
-#define SPLASH_GRAPH_TYPE_DRAGNDROP "dragndrop"
-#define SPLASH_GRAPH_TYPE_COLORCALIBRATOR "colorCalibrator"
-#define SPLASH_GRAPH_TYPE_GEOMETRICCALIBRATOR "geometricCalibrator"
 #define SPLASH_GRAPH_TYPE_TEXCOORDGENERATOR "texCoordGenerator"
 
 #define GL_VENDOR_NVIDIA "NVIDIA Corporation"

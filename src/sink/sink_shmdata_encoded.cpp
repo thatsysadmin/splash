@@ -12,7 +12,7 @@ namespace Splash
 Sink_Shmdata_Encoded::Sink_Shmdata_Encoded(RootObject* root)
     : Sink(root)
 {
-    _type = "sink_shmdata_encoded";
+    _type = SPLASH_GRAPH_TYPE_SINK_SHMDATAENCODED;
     registerAttributes();
 }
 

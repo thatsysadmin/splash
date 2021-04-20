@@ -11,7 +11,7 @@ namespace Splash
 VirtualProbe::VirtualProbe(RootObject* root)
     : Texture(root)
 {
-    _type = "virtual_probe";
+    _type = SPLASH_GRAPH_TYPE_VIRTUALPROBE;
     _renderingPriority = Priority::PRE_CAMERA;
     registerAttributes();
 

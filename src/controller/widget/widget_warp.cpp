@@ -10,7 +10,7 @@ namespace Splash
 /*************/
 void GuiWarp::render()
 {
-    auto objects = getObjectsPtr(getObjectsOfType("warp"));
+    auto objects = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_WARP));
     auto warps = std::vector<std::shared_ptr<Warp>>();
 
     std::transform(objects.cbegin(), objects.cend(), std::back_inserter(warps), [](const auto& warp) { return std::dynamic_pointer_cast<Warp>(warp); });
@@ -34,7 +34,7 @@ void GuiWarp::render()
             if (!linkedObject)
                 continue;
 
-            if (linkedObject->getType() == "camera")
+            if (linkedObject->getType() == SPLASH_GRAPH_TYPE_CAMERA)
                 std::dynamic_pointer_cast<Camera>(linkedObject)->render();
         }
 

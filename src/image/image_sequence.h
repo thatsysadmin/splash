@@ -66,7 +66,7 @@ class Image_Sequence : public Image
      */
     void init()
     {
-        _type = "image_sequence";
+        _type = SPLASH_GRAPH_TYPE_IMAGE_SEQUENCE;
         registerAttributes();
     }
 

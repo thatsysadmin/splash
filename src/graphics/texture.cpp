@@ -13,7 +13,7 @@ namespace Splash
 Texture::Texture(RootObject* root)
     : GraphObject(root)
 {
-    _type = "texture";
+    _type = SPLASH_GRAPH_TYPE_TEXTURE;
     registerAttributes();
 
     // This is used for getting documentation "offline"

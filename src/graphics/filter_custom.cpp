@@ -7,7 +7,7 @@ namespace Splash
 FilterCustom::FilterCustom(RootObject* root)
     : Filter(root)
 {
-    _type = "filter_custom";
+    _type = SPLASH_GRAPH_TYPE_FILTER_C;
     registerAttributes();
 }
 

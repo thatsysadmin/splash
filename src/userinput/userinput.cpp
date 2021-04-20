@@ -32,7 +32,7 @@ bool UserInput::State::operator==(const UserInput::State& s) const
 UserInput::UserInput(RootObject* root)
     : GraphObject(root)
 {
-    _type = "userinput";
+    _type = SPLASH_GRAPH_TYPE_USERINPUT;
     registerAttributes();
     _updateThread = std::thread([&]() {
         _running = true;
@@ -136,7 +136,7 @@ std::string UserInput::getWindowName(const GLFWwindow* glfwWindow) const
     auto windows = std::list<std::shared_ptr<GraphObject>>();
     auto lock = scene->getLockOnObjects();
     for (auto& obj : scene->_objects)
-        if (obj.second->getType() == "window")
+        if (obj.second->getType() == SPLASH_GRAPH_TYPE_WINDOW)
             windows.push_back(obj.second);
 
     for (auto& w : windows)

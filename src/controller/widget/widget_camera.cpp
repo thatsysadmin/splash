@@ -281,7 +281,7 @@ void GuiCamera::setJoystick(const std::vector<float>& axes, const std::vector<ui
 std::vector<glm::dmat4> GuiCamera::getCamerasRTMatrices()
 {
     auto rtMatrices = std::vector<glm::dmat4>();
-    auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+    auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
     for (auto& camera : cameras)
         rtMatrices.push_back(std::dynamic_pointer_cast<Camera>(camera)->computeViewMatrix());
 
@@ -299,7 +299,7 @@ void GuiCamera::nextCamera()
     // Ensure that all cameras are shown
     _camerasHidden = false;
     _camerasColorized = false;
-    setObjectsOfType("camera", "hide", {false});
+    setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "hide", {false});
 
     setObjectAttribute(_camera->getName(), "frame", {0});
     setObjectAttribute(_camera->getName(), "displayCalibration", {0});
@@ -379,12 +379,12 @@ void GuiCamera::colorizeCameraWireframes(bool colorize)
 
     if (colorize)
     {
-        setObjectsOfType("camera", "colorWireframe", {1.0, 0.0, 1.0, 1.0});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "colorWireframe", {1.0, 0.0, 1.0, 1.0});
         setObjectAttribute(_camera->getName(), "colorWireframe", {0.0, 1.0, 0.0, 1.0});
     }
     else
     {
-        setObjectsOfType("camera", "colorWireframe", {1.0, 1.0, 1.0, 1.0});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "colorWireframe", {1.0, 1.0, 1.0, 1.0});
     }
 }
 
@@ -412,7 +412,7 @@ void GuiCamera::hideOtherCameras(bool hide)
     if (hide == _camerasHidden)
         return;
 
-    auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+    auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
     for (auto& cam : cameras)
         if (cam != _camera)
             setObjectAttribute(cam->getName(), "hide", {hide});
@@ -457,7 +457,7 @@ void GuiCamera::processJoystickState()
         }
         else if (_joyButtons[6] == 1 && _joyButtons[6] != _joyButtonsPrevious[6])
         {
-            setObjectsOfType("camera", "flashBG", {});
+            setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "flashBG", {});
         }
     }
 
@@ -693,10 +693,10 @@ std::vector<std::shared_ptr<Camera>> GuiCamera::getCameras()
 
     auto rtMatrices = getCamerasRTMatrices();
     for (auto& matrix : rtMatrices)
-        _guiCamera->drawModelOnce("camera", matrix);
+        _guiCamera->drawModelOnce(SPLASH_GRAPH_TYPE_CAMERA, matrix);
     cameras.push_back(_guiCamera);
 
-    auto listOfCameras = getObjectsPtr(getObjectsOfType("camera"));
+    auto listOfCameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
     for (auto& camera : listOfCameras)
         cameras.push_back(std::dynamic_pointer_cast<Camera>(camera));
 
@@ -707,7 +707,7 @@ std::vector<std::shared_ptr<Camera>> GuiCamera::getCameras()
 void GuiCamera::drawVirtualProbes()
 {
     auto rtMatrices = std::vector<glm::dmat4>();
-    auto probes = getObjectsPtr(getObjectsOfType("virtual_probe"));
+    auto probes = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_VIRTUALPROBE));
     for (auto& probe : probes)
         _guiCamera->drawModelOnce("probe", std::dynamic_pointer_cast<VirtualProbe>(probe)->computeViewMatrix());
 }

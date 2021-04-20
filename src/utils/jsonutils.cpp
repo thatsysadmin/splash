@@ -92,7 +92,7 @@ bool checkAndUpgradeConfiguration(Json::Value& configuration)
 
             for (auto& object : scene["objects"])
             {
-                if (object["type"] != "window")
+                if (object["type"] != SPLASH_GRAPH_TYPE_WINDOW)
                     continue;
 
                 object["layout"] = Json::Value(Json::arrayValue);

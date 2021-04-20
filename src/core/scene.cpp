@@ -55,7 +55,7 @@ bool Scene::_hasNVSwapGroup{false};
 std::vector<int> Scene::_glVersion{0, 0};
 std::string Scene::_glVendor{};
 std::string Scene::_glRenderer{};
-std::vector<std::string> Scene::_ghostableTypes{"camera", "warp"};
+std::vector<std::string> Scene::_ghostableTypes{SPLASH_GRAPH_TYPE_CAMERA, SPLASH_GRAPH_TYPE_WARP};
 
 /*************/
 Scene::Scene(Context context)
@@ -116,7 +116,7 @@ std::shared_ptr<GraphObject> Scene::addObject(const std::string& type, const std
     std::lock_guard<std::recursive_mutex> lockObjects(_objectsMutex);
 
     // If we run in background mode, don't create any window
-    if (_runInBackground && type == "window")
+    if (_runInBackground && type == SPLASH_GRAPH_TYPE_WINDOW)
         return {};
 
     // Check whether an object of this name already exists
@@ -142,9 +142,9 @@ std::shared_ptr<GraphObject> Scene::addObject(const std::string& type, const std
         // Some objects have to be connected to the gui (if the Scene is master)
         if (_gui != nullptr)
         {
-            if (obj->getType() == "object")
+            if (obj->getType() == SPLASH_GRAPH_TYPE_OBJECT)
                 link(obj, std::dynamic_pointer_cast<GraphObject>(_gui));
-            else if (obj->getType() == "window" && !_guiLinkedToWindow)
+            else if (obj->getType() == SPLASH_GRAPH_TYPE_WINDOW && !_guiLinkedToWindow)
             {
                 link(std::dynamic_pointer_cast<GraphObject>(_gui), obj);
                 _guiLinkedToWindow = true;
@@ -364,7 +364,7 @@ void Scene::render()
         // Swap all buffers at once
         Timer::get() << "swap";
         for (auto& obj : _objects)
-            if (obj.second->getType() == "window")
+            if (obj.second->getType() == SPLASH_GRAPH_TYPE_WINDOW)
                 std::dynamic_pointer_cast<Window>(obj.second)->swapBuffers();
         Timer::get() >> "swap";
     }
@@ -969,7 +969,7 @@ void Scene::registerAttributes()
             addTask([=]() {
                 std::lock_guard<std::recursive_mutex> lock(_objectsMutex);
                 for (auto& obj : _objects)
-                    if (obj.second->getType() == "window")
+                    if (obj.second->getType() == SPLASH_GRAPH_TYPE_WINDOW)
                         std::dynamic_pointer_cast<Window>(obj.second)->setAttribute("swapTest", args);
             });
             return true;
@@ -982,7 +982,7 @@ void Scene::registerAttributes()
             addTask([=]() {
                 std::lock_guard<std::recursive_mutex> lock(_objectsMutex);
                 for (auto& obj : _objects)
-                    if (obj.second->getType() == "window")
+                    if (obj.second->getType() == SPLASH_GRAPH_TYPE_WINDOW)
                         std::dynamic_pointer_cast<Window>(obj.second)->setAttribute("swapTestColor", args);
             });
             return true;
@@ -1027,7 +1027,7 @@ void Scene::registerAttributes()
             addTask([=]() {
                 std::lock_guard<std::recursive_mutex> lock(_objectsMutex);
                 for (auto& obj : _objects)
-                    if (obj.second->getType() == "camera")
+                    if (obj.second->getType() == SPLASH_GRAPH_TYPE_CAMERA)
                         std::dynamic_pointer_cast<Camera>(obj.second)->setAttribute("wireframe", args);
             });
 

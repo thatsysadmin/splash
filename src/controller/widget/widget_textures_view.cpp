@@ -12,7 +12,7 @@ namespace Splash
 /*************/
 void GuiTexturesView::render()
 {
-    auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+    auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
     auto odd = false;
     auto leftMargin = ImGui::GetCursorScreenPos().x - ImGui::GetWindowPos().x;
 

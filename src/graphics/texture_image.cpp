@@ -552,7 +552,7 @@ void Texture_Image::update()
 /*************/
 void Texture_Image::init()
 {
-    _type = "texture_image";
+    _type = SPLASH_GRAPH_TYPE_TEXTUREIMAGE;
     registerAttributes();
 
     // This is used for getting documentation "offline"

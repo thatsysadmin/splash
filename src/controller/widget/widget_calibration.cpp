@@ -187,7 +187,7 @@ const std::list<std::shared_ptr<Mesh>> GuiCalibration::getSceneMeshes()
     {
         const auto objects = getObjectsPtr(getObjectsOfType(type));
         for (const auto& object : objects)
-            if (object->getSavable() && object->getType() != "mesh_shmdata")
+            if (object->getSavable() && object->getType() != SPLASH_GRAPH_TYPE_MESH_SHMDATA)
                 meshList.push_back(std::dynamic_pointer_cast<Mesh>(object));
     }
 

@@ -90,7 +90,7 @@ bool World::applyContext()
             if (!_nameRegistry.registerName(pythonObjectName))
                 pythonObjectName = _nameRegistry.generateName("_pythonArgScript");
 
-            sendMessage(SPLASH_ALL_PEERS, "addObject", {"python", pythonObjectName, _masterSceneName});
+            sendMessage(SPLASH_ALL_PEERS, "addObject", {SPLASH_GRAPH_TYPE_PYTHON, pythonObjectName, _masterSceneName});
             sendMessage(pythonObjectName, "savable", {false});
             sendMessage(pythonObjectName, "args", {pythonArgs});
             sendMessage(pythonObjectName, "file", {pythonScriptPath});
@@ -666,7 +666,7 @@ void World::saveProject(const string& filename)
                 bool isSavableType = _factory->isProjectSavable(config["objects"][v[0].asString()]["type"].asString());
                 // If the object is linked to a camera, we save the link as
                 // "saved to all available cameras"
-                bool isLinkedToCam = (config["objects"][v[1].asString()]["type"].asString() == "camera");
+                bool isLinkedToCam = (config["objects"][v[1].asString()]["type"].asString() == SPLASH_GRAPH_TYPE_CAMERA);
 
                 if (isLinkedToCam)
                     v[1] = SPLASH_CAMERA_LINK;
@@ -750,7 +750,7 @@ void World::leave(int /*signal_value*/)
 bool World::copyCameraParameters(const std::string& filename)
 {
     // List of copyable types
-    static vector<string> copyableTypes{"camera", "warp"};
+    static vector<string> copyableTypes{SPLASH_GRAPH_TYPE_CAMERA, SPLASH_GRAPH_TYPE_WARP};
 
     Json::Value config;
     if (!Utils::loadJsonFile(filename, config))
@@ -856,7 +856,7 @@ bool World::loadProject(const string& filename)
                 }
                 else
                 {
-                    auto cameraNames = getObjectsOfType("camera");
+                    auto cameraNames = getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA);
                     for (const auto& camera : cameraNames)
                         sendMessage(SPLASH_ALL_PEERS, "link", {link[0].asString(), camera});
                 }

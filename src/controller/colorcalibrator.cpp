@@ -73,7 +73,7 @@ void ColorCalibrator::update()
         }
 
         // Get the Camera list
-        auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+        auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
 
         _calibrationParams.clear();
         for (const auto& camera : cameras)

@@ -18,7 +18,7 @@ Image_List::Image_List(RootObject* root)
 /*************/
 void Image_List::init()
 {
-    _type = "image_list";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_LIST;
 }
 
 /*************/

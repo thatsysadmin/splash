@@ -445,10 +445,10 @@ std::list<std::shared_ptr<GraphObject>> GuiMedia::getSceneMedia()
 std::list<std::shared_ptr<GraphObject>> GuiMedia::getFiltersForImage(const std::shared_ptr<GraphObject>& image)
 {
     auto filterList = std::list<std::shared_ptr<GraphObject>>();
-    auto allFilters = getObjectsPtr(getObjectsOfType("filter"));
+    auto allFilters = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_FILTER));
     for (auto& obj : allFilters)
     {
-        if (obj->getType() != "filter")
+        if (obj->getType() != SPLASH_GRAPH_TYPE_FILTER)
             continue;
 
         auto linkedImages = obj->getLinkedObjects();

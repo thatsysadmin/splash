@@ -13,7 +13,7 @@ using namespace Splash;
 TEST_CASE("Testing Factory subtype evaluation")
 {
     auto factory = Factory();
-    CHECK(factory.isSubtype<Image>("image_ffmpeg"));
+    CHECK(factory.isSubtype<Image>(SPLASH_GRAPH_TYPE_IMAGE_FFMPEG));
 }
 
 /*************/

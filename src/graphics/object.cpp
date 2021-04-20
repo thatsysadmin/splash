@@ -31,7 +31,7 @@ Object::Object(RootObject* root)
 /*************/
 void Object::init()
 {
-    _type = "object";
+    _type = SPLASH_GRAPH_TYPE_OBJECT;
     registerAttributes();
 
     // This is used for getting documentation "offline"
@@ -92,12 +92,12 @@ void Object::activate()
         shaderParameters.push_front("texture");
         _shader->setAttribute("fill", shaderParameters);
     }
-    else if (_fill == "filter")
+    else if (_fill == SPLASH_GRAPH_TYPE_FILTER)
     {
         if (_textures.size() > 0 && _textures[0]->getType() == "texture_syphon")
             shaderParameters.push_back("TEXTURE_RECT");
 
-        shaderParameters.push_front("filter");
+        shaderParameters.push_front(SPLASH_GRAPH_TYPE_FILTER);
         _shader->setAttribute("fill", shaderParameters);
     }
     else if (_fill == "window")
@@ -221,51 +221,51 @@ int Object::getVerticesNumber() const
 /*************/
 bool Object::linkIt(const std::shared_ptr<GraphObject>& obj)
 {
-    if (obj->getType().find("texture") != std::string::npos)
+    if (obj->getType().find(SPLASH_GRAPH_TYPE_TEXTURE) != std::string::npos)
     {
-        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject("filter", getName() + "_" + obj->getName() + "_filter").lock());
+        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject(SPLASH_GRAPH_TYPE_FILTER, getName() + "_" + obj->getName() + "_filter").lock());
         filter->setSavable(_savable); // We always save the filters as they hold user-specified values, if this is savable
         if (filter->linkTo(obj))
             return linkTo(filter);
         else
             return false;
     }
-    else if (obj->getType().find("filter") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_FILTER) != std::string::npos)
     {
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         addTexture(tex);
         return true;
     }
-    else if (obj->getType().find("virtual_probe") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_VIRTUALPROBE) != std::string::npos)
     {
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         addTexture(tex);
         return true;
     }
-    else if (obj->getType().find("queue") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_QUEUE) != std::string::npos)
     {
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         addTexture(tex);
         return true;
     }
-    else if (obj->getType().find("image") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_IMAGE) != std::string::npos)
     {
-        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject("filter", getName() + "_" + obj->getName() + "_filter").lock());
+        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject(SPLASH_GRAPH_TYPE_FILTER, getName() + "_" + obj->getName() + "_filter").lock());
         filter->setSavable(_savable); // We always save the filters as they hold user-specified values, if this is savable
         if (filter->linkTo(obj))
             return linkTo(filter);
         else
             return false;
     }
-    else if (obj->getType().find("mesh") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_MESH) != std::string::npos)
     {
-        auto geom = std::dynamic_pointer_cast<Geometry>(_root->createObject("geometry", getName() + "_" + obj->getName() + "_geom").lock());
+        auto geom = std::dynamic_pointer_cast<Geometry>(_root->createObject(SPLASH_GRAPH_TYPE_GEOMETRY, getName() + "_" + obj->getName() + "_geom").lock());
         if (geom->linkTo(obj))
             return linkTo(geom);
         else
             return false;
     }
-    else if (obj->getType().find("geometry") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_GEOMETRY) != std::string::npos)
     {
         auto geom = std::dynamic_pointer_cast<Geometry>(obj);
         addGeometry(geom);
@@ -279,7 +279,7 @@ bool Object::linkIt(const std::shared_ptr<GraphObject>& obj)
 void Object::unlinkIt(const std::shared_ptr<GraphObject>& obj)
 {
     auto type = obj->getType();
-    if (type.find("texture") != std::string::npos)
+    if (type.find(SPLASH_GRAPH_TYPE_TEXTURE) != std::string::npos)
     {
         auto filterName = getName() + "_" + obj->getName() + "_filter";
 
@@ -291,7 +291,7 @@ void Object::unlinkIt(const std::shared_ptr<GraphObject>& obj)
 
         _root->disposeObject(filterName);
     }
-    else if (type.find("image") != std::string::npos)
+    else if (type.find(SPLASH_GRAPH_TYPE_IMAGE) != std::string::npos)
     {
         auto filterName = getName() + "_" + obj->getName() + "_filter";
 
@@ -303,7 +303,7 @@ void Object::unlinkIt(const std::shared_ptr<GraphObject>& obj)
 
         _root->disposeObject(filterName);
     }
-    else if (type.find("filter") != std::string::npos)
+    else if (type.find(SPLASH_GRAPH_TYPE_FILTER) != std::string::npos)
     {
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         removeTexture(tex);
@@ -313,7 +313,7 @@ void Object::unlinkIt(const std::shared_ptr<GraphObject>& obj)
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         removeTexture(tex);
     }
-    else if (type.find("mesh") != std::string::npos)
+    else if (type.find(SPLASH_GRAPH_TYPE_MESH) != std::string::npos)
     {
         auto geomName = getName() + "_" + obj->getName() + "_geom";
 
@@ -325,12 +325,12 @@ void Object::unlinkIt(const std::shared_ptr<GraphObject>& obj)
 
         _root->disposeObject(geomName);
     }
-    else if (type.find("geometry") != std::string::npos)
+    else if (type.find(SPLASH_GRAPH_TYPE_GEOMETRY) != std::string::npos)
     {
         auto geom = std::dynamic_pointer_cast<Geometry>(obj);
         removeGeometry(geom);
     }
-    else if (obj->getType().find("queue") != std::string::npos)
+    else if (obj->getType().find(SPLASH_GRAPH_TYPE_QUEUE) != std::string::npos)
     {
         auto tex = std::dynamic_pointer_cast<Texture>(obj);
         removeTexture(tex);

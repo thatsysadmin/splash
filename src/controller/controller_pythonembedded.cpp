@@ -1094,7 +1094,7 @@ PythonEmbedded::PythonEmbedded(RootObject* root)
 {
     using namespace std::placeholders;
 
-    _type = "python";
+    _type = SPLASH_GRAPH_TYPE_PYTHON;
     registerAttributes();
 
     // Initialize the Splash python module

@@ -29,7 +29,7 @@ TEST_CASE("Testing Image_List Initialization")
 {
     auto root = RootObject();
     auto image = Image_List(&root);
-    CHECK_EQ(image.getType(), "image_list");
+    CHECK_EQ(image.getType(), SPLASH_GRAPH_TYPE_IMAGE_LIST);
 }
 
 TEST_CASE("Testing read function")

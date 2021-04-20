@@ -7,7 +7,7 @@ namespace Splash
 FilterBlackLevel::FilterBlackLevel(RootObject* root)
     : Filter(root)
 {
-    _type = "filter_black_level";
+    _type = SPLASH_GRAPH_TYPE_FILTER_BL;
 
     registerDefaultShaderAttributes();
 }

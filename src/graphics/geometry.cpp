@@ -25,7 +25,7 @@ Geometry::Geometry(RootObject* root)
 /*************/
 void Geometry::init()
 {
-    _type = "geometry";
+    _type = SPLASH_GRAPH_TYPE_GEOMETRY;
     registerAttributes();
 
     // If the root object weak_ptr is expired, this means that

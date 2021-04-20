@@ -7,7 +7,7 @@ namespace Splash
 FilterColorCurves::FilterColorCurves(RootObject* root)
     : Filter(root)
 {
-    _type = "filter_color_curves";
+    _type = SPLASH_GRAPH_TYPE_FILTER_CC;
 }
 
 /*************/

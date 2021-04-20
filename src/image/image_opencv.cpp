@@ -53,7 +53,7 @@ bool Image_OpenCV::read(const std::string& filename)
 /*************/
 void Image_OpenCV::init()
 {
-    _type = "image_opencv";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_OPENCV;
     registerAttributes();
 
     // This is used for getting documentation "offline"

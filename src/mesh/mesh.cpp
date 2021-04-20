@@ -28,7 +28,7 @@ Mesh::~Mesh()
 /*************/
 void Mesh::init()
 {
-    _type = "mesh";
+    _type = SPLASH_GRAPH_TYPE_MESH;
     registerAttributes();
 
     // This is used for getting documentation "offline"

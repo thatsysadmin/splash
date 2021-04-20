@@ -18,7 +18,7 @@ namespace Splash
 Shader::Shader(ProgramType type)
     : GraphObject(nullptr)
 {
-    _type = "shader";
+    _type = SPLASH_GRAPH_TYPE_SHADER;
 
     if (type == prgGraphic)
     {

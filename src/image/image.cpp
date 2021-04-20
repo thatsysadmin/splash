@@ -38,7 +38,7 @@ Image::Image(RootObject* root, const ImageBufferSpec& spec)
 /*************/
 void Image::init()
 {
-    _type = "image";
+    _type = SPLASH_GRAPH_TYPE_IMAGE;
     registerAttributes();
 
     // This is used for getting documentation "offline"

@@ -67,7 +67,7 @@ namespace Splash
 Camera::Camera(RootObject* root)
     : GraphObject(root)
 {
-    _type = "camera";
+    _type = SPLASH_GRAPH_TYPE_CAMERA;
     _renderingPriority = Priority::CAMERA;
     registerAttributes();
 
@@ -1040,7 +1040,7 @@ void Camera::loadDefaultModels()
 {
     auto datapath = std::string(DATADIR);
     std::map<std::string, std::string> files{
-        {"3d_marker", datapath + "/3d_marker.obj"}, {"2d_marker", datapath + "/2d_marker.obj"}, {"camera", datapath + "/camera.obj"}, {"probe", datapath + "/probe.obj"}};
+        {"3d_marker", datapath + "/3d_marker.obj"}, {"2d_marker", datapath + "/2d_marker.obj"}, {SPLASH_GRAPH_TYPE_CAMERA, datapath + "/camera.obj"}, {"probe", datapath + "/probe.obj"}};
 
     auto scene = dynamic_cast<Scene*>(_root);
     assert(scene != nullptr);

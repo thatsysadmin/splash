@@ -194,47 +194,47 @@ void Factory::registerObjects()
         "blender",
         "Controls the blending of all the cameras.");
 
-    _objectBook["camera"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Camera>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_CAMERA] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Camera>(root)); },
         GraphObject::Category::MISC,
         "camera",
         "Virtual camera which corresponds to a given videoprojector.");
 
-    _objectBook["filter"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Filter>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_FILTER] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Filter>(root)); },
         GraphObject::Category::FILTER,
         "filter",
         "Filter applied to textures. The default filter allows for standard image manipulation, the user can set his own GLSL shader.",
         true);
 
-    _objectBook["filter_black_level"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterBlackLevel>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_FILTER_BL] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterBlackLevel>(root)); },
         GraphObject::Category::FILTER,
         "black level filter",
         "Black level filter, which sets the black for an input source higher than 0 to allow for blending in dark areas.",
         true);
 
-    _objectBook["filter_color_curves"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterColorCurves>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_FILTER_CC] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterColorCurves>(root)); },
         GraphObject::Category::FILTER,
         "color curves filter",
         "Color curves filter, which applies color transformation based on user-defined RGB curves.",
         true);
 
-    _objectBook["filter_custom"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterCustom>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_FILTER_C] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<FilterCustom>(root)); },
         GraphObject::Category::FILTER,
         "custom filter",
         "Custom filter, which can take a GLSL fragment shader source to process the input texture(s).",
         true);
 
-    _objectBook["geometry"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Geometry>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_GEOMETRY] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Geometry>(root)); },
         GraphObject::Category::MISC,
         "Geometry",
         "Intermediary object holding vertices, UV and normal coordinates of a projection surface.");
 
-    _objectBook["image"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Image>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Image>(root)); },
         GraphObject::Category::IMAGE,
         "image",
         "Static image read from a file.",
         true);
 
-    _objectBook["image_list"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_LIST] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -249,7 +249,7 @@ void Factory::registerObjects()
         true);
 
 #if HAVE_LINUX
-    _objectBook["image_v4l2"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_V4L2] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -264,7 +264,7 @@ void Factory::registerObjects()
         true);
 #endif
 
-    _objectBook["image_ffmpeg"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_FFMPEG] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -279,7 +279,7 @@ void Factory::registerObjects()
         true);
 
 #if HAVE_GPHOTO and HAVE_OPENCV
-    _objectBook["image_gphoto"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_GPHOTO] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -295,7 +295,7 @@ void Factory::registerObjects()
 #endif
 
 #if HAVE_SHMDATA
-    _objectBook["image_shmdata"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_SHMDATA] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -311,7 +311,7 @@ void Factory::registerObjects()
 #endif
 
 #if HAVE_OPENCV
-    _objectBook["image_opencv"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_IMAGE_OPENCV] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -326,14 +326,14 @@ void Factory::registerObjects()
         true);
 #endif
 
-    _objectBook["mesh"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Mesh>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_MESH] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Mesh>(root)); },
         GraphObject::Category::MESH,
         "mesh from obj file",
         "Mesh (vertices and UVs) describing a projection surface, read from a .obj file.",
         true);
 
 #if HAVE_SHMDATA
-    _objectBook["mesh_shmdata"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_MESH_SHMDATA] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -348,31 +348,31 @@ void Factory::registerObjects()
         true);
 #endif
 
-    _objectBook["sink"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_SINK] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink>(root)); },
         GraphObject::Category::MISC,
         "sink a texture to a host buffer",
         "Get the texture content to a host buffer. Only used internally.");
 
 #if HAVE_SHMDATA
-    _objectBook["sink_shmdata"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink_Shmdata>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_SINK_SHMDATA] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink_Shmdata>(root)); },
         GraphObject::Category::MISC,
         "sink a texture to shmdata file",
         "Outputs connected texture to a Shmdata shared memory.");
 
-    _objectBook["sink_shmdata_encoded"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink_Shmdata_Encoded>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_SINK_SHMDATAENCODED] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Sink_Shmdata_Encoded>(root)); },
         GraphObject::Category::MISC,
         "sink a texture as an encoded video to shmdata file",
         "Outputs texture as a compressed frame to a Shmdata shared memory.");
 #endif
 
-    _objectBook["object"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Object>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_OBJECT] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Object>(root)); },
         GraphObject::Category::MISC,
         "object",
         "Utility class used for specify which image is mapped onto which mesh.",
         true);
 
 #if HAVE_PYTHON
-    _objectBook["python"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_PYTHON] = Page(
         [&](RootObject* root) {
             if (!root || (_scene && !_scene->isMaster()))
                 return std::shared_ptr<GraphObject>(nullptr);
@@ -383,7 +383,7 @@ void Factory::registerObjects()
         "Allows for controlling Splash through a Python script.");
 #endif
 
-    _objectBook["queue"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_QUEUE] = Page(
         [&](RootObject* root) {
             std::shared_ptr<GraphObject> object;
             if (!_scene)
@@ -397,13 +397,13 @@ void Factory::registerObjects()
         "Allows for creating a timed playlist of image sources.",
         true);
 
-    _objectBook["texture_image"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Texture_Image>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_TEXTUREIMAGE] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Texture_Image>(root)); },
         GraphObject::Category::TEXTURE,
         "texture image",
         "Texture object created from an Image object.",
         true);
 
-    _objectBook["virtual_probe"] = Page(
+    _objectBook[SPLASH_GRAPH_TYPE_VIRTUALPROBE] = Page(
         [&](RootObject* root) {
             if (!_scene)
                 return std::dynamic_pointer_cast<GraphObject>(std::make_shared<VirtualProbe>(nullptr));
@@ -415,12 +415,12 @@ void Factory::registerObjects()
         "Virtual screen used to simulate a virtual projection surface.",
         true);
 
-    _objectBook["warp"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Warp>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_WARP] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Warp>(root)); },
         GraphObject::Category::MISC,
         "warp",
         "Warping object, allows for deforming the output of a Camera.");
 
-    _objectBook["window"] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Window>(root)); },
+    _objectBook[SPLASH_GRAPH_TYPE_WINDOW] = Page([&](RootObject* root) { return std::dynamic_pointer_cast<GraphObject>(std::make_shared<Window>(root)); },
         GraphObject::Category::MISC,
         "window",
         "Window object, set to be shown on one or multiple physical outputs.");

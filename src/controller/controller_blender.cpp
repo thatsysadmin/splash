@@ -31,7 +31,7 @@ void Blender::update()
     auto getObjLinkedToCameras = [&]() -> std::vector<std::shared_ptr<GraphObject>> {
         std::vector<std::shared_ptr<GraphObject>> objLinkedToCameras{};
 
-        const auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+        const auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
         const auto links = getObjectLinks();
         for (auto& camera : cameras)
         {
@@ -57,7 +57,7 @@ void Blender::update()
             std::vector<std::shared_ptr<Camera>> cameras;
             std::vector<std::shared_ptr<Object>> objects;
 
-            auto objectList = getObjectsPtr(getObjectsOfType("camera"));
+            auto objectList = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
             std::transform(objectList.cbegin(), objectList.cend(), std::back_inserter(cameras), [](auto cameraPtr) {
                 auto camera = std::dynamic_pointer_cast<Camera>(cameraPtr);
                 assert(camera != nullptr);
@@ -74,7 +74,7 @@ void Blender::update()
             // If depth-aware depth computation is deactivated, also
             // deactivate vertex depth computation to prevent wasting
             // processing power
-            setObjectsOfType("object", "computeFarthestVisibleVertexDistance", {_depthAwareBlending});
+            setObjectsOfType(SPLASH_GRAPH_TYPE_OBJECT, "computeFarthestVisibleVertexDistance", {_depthAwareBlending});
 
             if (!cameras.empty())
             {
@@ -114,7 +114,7 @@ void Blender::update()
                 object->setAttribute("activateVertexBlending", {true});
 
             // If there are some other scenes, send them the blending
-            auto geometries = getObjectsPtr(getObjectsOfType("geometry"));
+            auto geometries = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_GEOMETRY));
             for (auto& geometry : geometries)
             {
                 auto serializedGeometry = std::dynamic_pointer_cast<Geometry>(geometry)->serialize();
@@ -150,7 +150,7 @@ void Blender::update()
     {
         _blendingComputed = false;
 
-        auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+        auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
         auto objects = getObjLinkedToCameras();
 
         if (isMaster && cameras.size() != 0)

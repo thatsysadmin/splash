@@ -36,7 +36,7 @@ Image_FFmpeg::~Image_FFmpeg()
 /*************/
 void Image_FFmpeg::init()
 {
-    _type = "image_ffmpeg";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_FFMPEG;
     registerAttributes();
 
     // This is used for getting documentation "offline"

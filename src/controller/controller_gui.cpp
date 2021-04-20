@@ -297,7 +297,7 @@ void Gui::key(int key, int action, int mods)
     case GLFW_KEY_F:
     {
         if (action == GLFW_PRESS && mods == GLFW_MOD_CONTROL)
-            setObjectsOfType("camera", "flashBG", {});
+            setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "flashBG", {});
         break;
     }
     case GLFW_KEY_M:
@@ -307,7 +307,7 @@ void Gui::key(int key, int action, int mods)
             static bool cursorVisible = false;
             cursorVisible = !cursorVisible;
 
-            setObjectsOfType("window", "showCursor", {(int)cursorVisible});
+            setObjectsOfType(SPLASH_GRAPH_TYPE_WINDOW, "showCursor", {(int)cursorVisible});
         }
         break;
     }
@@ -443,7 +443,7 @@ void Gui::drawMainTab()
 
     ImGui::SameLine();
     if (ImGui::Button("Flash background", ImVec2(availableSize[0] / 3.f, 32.f)))
-        setObjectsOfType("camera", "flashBG", {});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "flashBG", {});
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Set the background as light gray (Ctrl+%s)", getLocalKeyName('F'));
 
@@ -473,7 +473,7 @@ void Gui::drawMainTab()
     ImGui::SameLine();
     if (ImGui::Button("Activate correction", ImVec2(availableSize[0] / 3.f, 32.f)))
     {
-        auto cameras = getObjectsPtr(getObjectsOfType("camera"));
+        auto cameras = getObjectsPtr(getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA));
         for (auto& cam : cameras)
         {
             setObjectAttribute(cam->getName(), "activateColorLUT", {2});
@@ -543,11 +543,11 @@ void Gui::drawMainTab()
     ImGui::Text("Blending parameters");
     static auto blendWidth = 0.05f;
     if (ImGui::InputFloat("Blending width", &blendWidth, 0.01f, 0.04f, 3, ImGuiInputTextFlags_EnterReturnsTrue))
-        setObjectsOfType("camera", "blendWidth", {blendWidth});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "blendWidth", {blendWidth});
 
     static auto blendPrecision = 0.1f;
     if (ImGui::InputFloat("Blending precision", &blendPrecision, 0.01f, 0.04f, 3, ImGuiInputTextFlags_EnterReturnsTrue))
-        setObjectsOfType("camera", "blendPrecision", {blendPrecision});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "blendPrecision", {blendPrecision});
 
     auto depthAwareBlendingValue = getObjectAttribute(SPLASH_GRAPH_TYPE_BLENDER, "depthAwareBlending");
     if (!depthAwareBlendingValue.empty())
@@ -579,7 +579,7 @@ void Gui::drawMainTab()
     if (ImGui::Checkbox("Show camera count (w/ blending)", &showCameraCount))
     {
         setWorldAttribute("computeBlending", {"continuous"});
-        setObjectsOfType("camera", "showCameraCount", {showCameraCount});
+        setObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA, "showCameraCount", {showCameraCount});
     }
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Replace the objects texture with a color indicating the number of cameras displaying each pixel");

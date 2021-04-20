@@ -13,7 +13,7 @@ namespace Splash
 Sink::Sink(RootObject* root)
     : GraphObject(root)
 {
-    _type = "sink";
+    _type = SPLASH_GRAPH_TYPE_SINK;
     _renderingPriority = Priority::POST_CAMERA;
     registerAttributes();
 
@@ -54,7 +54,7 @@ bool Sink::linkIt(const std::shared_ptr<GraphObject>& obj)
     }
     else if (auto objAsTexture = std::dynamic_pointer_cast<Texture>(obj); objAsTexture)
     {
-        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject("filter", getName() + "_" + obj->getName() + "_filter").lock());
+        auto filter = std::dynamic_pointer_cast<Filter>(_root->createObject(SPLASH_GRAPH_TYPE_FILTER, getName() + "_" + obj->getName() + "_filter").lock());
         filter->setSavable(_savable); // We always save the filters as they hold user-specified values, if this is savable
         if (filter->linkTo(obj))
             return linkTo(filter);

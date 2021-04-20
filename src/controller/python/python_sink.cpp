@@ -77,7 +77,7 @@ int PythonSink::pythonSinkInit(PythonSinkObject* self, PyObject* args, PyObject*
 
     auto index = self->sinkIndex.fetch_add(1);
     self->sinkName = std::make_unique<std::string>(that->getName() + "_pythonsink_" + std::to_string(index));
-    that->setInScene("addObject", {"sink", *self->sinkName, root->getName()});
+    that->setInScene("addObject", {SPLASH_GRAPH_TYPE_SINK, *self->sinkName, root->getName()});
 
     // Wait until the sink is created
     int triesLeft = SPLASH_PYTHON_MAX_TRIES;
@@ -183,7 +183,7 @@ PyObject* PythonSink::pythonSinkLink(PythonSinkObject* self, PyObject* args, PyO
     self->filterName = std::make_unique<std::string>(*self->sinkName + "_filter_" + *self->sourceName);
 
     // Filter is added locally, we don't need (nor want) it in any other Scene
-    that->setInScene("addObject", {"filter", *self->filterName, root->getName()});
+    that->setInScene("addObject", {SPLASH_GRAPH_TYPE_FILTER, *self->filterName, root->getName()});
     // Wait for the object to be created
     that->waitForObjectCreation(*self->filterName, 50);
     that->setInScene("link", {*self->sourceName, *self->filterName});

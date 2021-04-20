@@ -28,7 +28,7 @@ Warp::Warp(RootObject* root)
 /*************/
 void Warp::init()
 {
-    _type = "warp";
+    _type = SPLASH_GRAPH_TYPE_WARP;
     _renderingPriority = Priority::POST_CAMERA;
     registerAttributes();
 

@@ -50,7 +50,7 @@ void Mesh_BezierPatch::update()
 /*************/
 void Mesh_BezierPatch::init()
 {
-    _type = "mesh_bezierPatch";
+    _type = SPLASH_GRAPH_TYPE_MESH_BEZIERPATCH;
     registerAttributes();
 
     // This is used for getting documentation "offline"

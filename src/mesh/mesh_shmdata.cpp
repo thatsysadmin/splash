@@ -31,7 +31,7 @@ bool Mesh_Shmdata::read(const std::string& filename)
 /*************/
 void Mesh_Shmdata::init()
 {
-    _type = "mesh_shmdata";
+    _type = SPLASH_GRAPH_TYPE_MESH_SHMDATA;
     registerAttributes();
 
     // This is used for getting documentation "offline"

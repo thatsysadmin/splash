@@ -37,7 +37,7 @@ int Window::_swappableWindowsCount{0};
 Window::Window(RootObject* root)
     : GraphObject(root)
 {
-    _type = "window";
+    _type = SPLASH_GRAPH_TYPE_WINDOW;
     _renderingPriority = Priority::WINDOW;
     registerAttributes();
 
@@ -198,7 +198,7 @@ bool Window::linkIt(const std::shared_ptr<GraphObject>& obj)
     }
     else if (std::dynamic_pointer_cast<Image>(obj))
     {
-        auto tex = std::dynamic_pointer_cast<Texture_Image>(_root->createObject("texture_image", getName() + "_" + obj->getName() + "_tex").lock());
+        auto tex = std::dynamic_pointer_cast<Texture_Image>(_root->createObject(SPLASH_GRAPH_TYPE_TEXTUREIMAGE, getName() + "_" + obj->getName() + "_tex").lock());
         tex->setResizable(0);
         if (tex->linkTo(obj))
             return linkTo(tex);

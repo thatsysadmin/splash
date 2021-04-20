@@ -86,13 +86,13 @@ TEST_CASE("Testing RootObject object creation and lifetime handling")
 {
     std::string objectName = "name";
     auto root = RootObjectMock();
-    auto graphObject = root.createObject("image", objectName);
+    auto graphObject = root.createObject(SPLASH_GRAPH_TYPE_IMAGE, objectName);
     CHECK(!graphObject.expired());
 
-    auto otherObject = root.createObject("image", objectName);
+    auto otherObject = root.createObject(SPLASH_GRAPH_TYPE_IMAGE, objectName);
     CHECK_EQ(graphObject.lock(), otherObject.lock());
 
-    otherObject = root.createObject("mesh", objectName);
+    otherObject = root.createObject(SPLASH_GRAPH_TYPE_MESH, objectName);
     CHECK(otherObject.expired());
 
     otherObject = root.createObject("nonExistingType", "someOtherName");
@@ -114,7 +114,7 @@ TEST_CASE("Testing RootObject attribute set")
     CHECK_EQ(root._testValue, value);
 
     auto originalName = "image";
-    auto image = root.createObject("image", originalName).lock();
+    auto image = root.createObject(SPLASH_GRAPH_TYPE_IMAGE, originalName).lock();
 
     auto newAlias = "newAlias";
     root.set(originalName, "alias", {newAlias});
@@ -131,7 +131,7 @@ TEST_CASE("Testing RootObject serialized object set")
 {
     auto root = RootObjectMock();
     auto imageName = "image";
-    auto image = std::dynamic_pointer_cast<Image>(root.createObject("image", imageName).lock());
+    auto image = std::dynamic_pointer_cast<Image>(root.createObject(SPLASH_GRAPH_TYPE_IMAGE, imageName).lock());
     auto serializedObject = std::make_shared<SerializedObject>();
 
     auto timestamp = image->getTimestamp();
@@ -141,7 +141,7 @@ TEST_CASE("Testing RootObject serialized object set")
     CHECK_EQ(timestamp, image->getTimestamp());
 
     auto otherName = "otherImage";
-    auto otherImage = std::dynamic_pointer_cast<Image>(root.createObject("image", otherName).lock());
+    auto otherImage = std::dynamic_pointer_cast<Image>(root.createObject(SPLASH_GRAPH_TYPE_IMAGE, otherName).lock());
     otherImage->set(512, 512, 3, ImageBufferSpec::Type::UINT8);
     otherImage->update();
     serializedObject = otherImage->serialize();

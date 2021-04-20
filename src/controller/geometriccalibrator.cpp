@@ -95,8 +95,8 @@ void GeometricCalibrator::unlinkIt(const std::shared_ptr<GraphObject>& obj)
 /*************/
 GeometricCalibrator::ConfigurationState GeometricCalibrator::saveCurrentState()
 {
-    ConfigurationState state = {.cameraList = getObjectsOfType("camera"),
-        .windowList = getObjectsOfType("window"),
+    ConfigurationState state = {.cameraList = getObjectsOfType(SPLASH_GRAPH_TYPE_CAMERA),
+        .windowList = getObjectsOfType(SPLASH_GRAPH_TYPE_WINDOW),
         .objectTypes = getObjectTypes(),
         .objectLinks = getObjectLinks(),
         .objectReversedLinks = getObjectReversedLinks()};
@@ -156,9 +156,9 @@ void GeometricCalibrator::setupCalibrationState(const GeometricCalibrator::Confi
 
     // Create the patterns display pipeline
     // Camera output is overridden with filters mimicking the windows layout
-    setWorldAttribute("addObject", {"image", _worldImageName});
-    setWorldAttribute("addObject", {"image", _worldBlackImage});
-    setWorldAttribute("addObject", {"image", _worldGreyImage});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_IMAGE, _worldImageName});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_IMAGE, _worldBlackImage});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_IMAGE, _worldGreyImage});
 
     waitForObjectCreation(_worldGreyImage);
     setObjectAttribute(_worldGreyImage, "pattern", {true});
@@ -170,7 +170,7 @@ void GeometricCalibrator::setupCalibrationState(const GeometricCalibrator::Confi
             continue;
 
         const auto filterName = _worldFilterPrefix + std::to_string(index);
-        setWorldAttribute("addObject", {"filter_custom", filterName});
+        setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_FILTER_C, filterName});
 
         const auto& windowName = state.windowList[index];
         setWorldAttribute("link", {_worldBlackImage, filterName});
@@ -262,7 +262,7 @@ std::optional<GeometricCalibrator::Calibration> GeometricCalibrator::calibration
                 targetLayoutIndex = 0;
                 for (const auto& objectName : state.objectLinks.at(windowName))
                 {
-                    if (state.objectTypes.at(objectName) != "camera")
+                    if (state.objectTypes.at(objectName) != SPLASH_GRAPH_TYPE_CAMERA)
                         continue;
                     if (objectName == cameraName)
                     {
@@ -516,9 +516,9 @@ void GeometricCalibrator::applyCalibration(const GeometricCalibrator::Configurat
 
     // Load the mesh into a new Mesh object, create a new Object to replace the one connected to the cameras
     const std::string calibrationPrefixName = "calibration_";
-    setWorldAttribute("addObject", {"mesh", calibrationPrefixName + "mesh"});
-    setWorldAttribute("addObject", {"object", calibrationPrefixName + "object"});
-    setWorldAttribute("addObject", {"image", calibrationPrefixName + "image"});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_MESH, calibrationPrefixName + "mesh"});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_OBJECT, calibrationPrefixName + "object"});
+    setWorldAttribute("addObject", {SPLASH_GRAPH_TYPE_IMAGE, calibrationPrefixName + "image"});
     setWorldAttribute("link", {calibrationPrefixName + "mesh", calibrationPrefixName + "object"});
     setWorldAttribute("link", {calibrationPrefixName + "image", calibrationPrefixName + "object"});
 

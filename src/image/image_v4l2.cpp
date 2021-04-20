@@ -38,7 +38,7 @@ Image_V4L2::~Image_V4L2()
 /*************/
 void Image_V4L2::init()
 {
-    _type = "image_v4l2";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_V4L2;
     registerAttributes();
 
     // This is used for getting documentation "offline"

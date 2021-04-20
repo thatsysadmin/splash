@@ -17,7 +17,7 @@ Queue::Queue(RootObject* root)
     : BufferObject(root)
     , _factory(std::make_unique<Factory>(_root))
 {
-    _type = "queue";
+    _type = SPLASH_GRAPH_TYPE_QUEUE;
 
     // This is used for getting documentation "offline"
     if (!_root)
@@ -111,7 +111,7 @@ void Queue::update()
 
         if (sourceIndex >= _playlist.size())
         {
-            _currentSource = std::dynamic_pointer_cast<BufferObject>(_factory->create("image"));
+            _currentSource = std::dynamic_pointer_cast<BufferObject>(_factory->create(SPLASH_GRAPH_TYPE_IMAGE));
             _currentSource->setName(_name + DISTANT_NAME_SUFFIX);
             _root->sendMessage(_name, "source", {"image"});
         }
@@ -123,7 +123,7 @@ void Queue::update()
             if (_currentSource)
                 _playing = true;
             else
-                _currentSource = std::dynamic_pointer_cast<BufferObject>(_factory->create("image"));
+                _currentSource = std::dynamic_pointer_cast<BufferObject>(_factory->create(SPLASH_GRAPH_TYPE_IMAGE));
             std::dynamic_pointer_cast<Image>(_currentSource)->zero();
             _currentSource->setName(_name + DISTANT_NAME_SUFFIX);
 
@@ -190,13 +190,13 @@ void Queue::cleanPlaylist(std::vector<Source>& playlist)
     // Find duration for videos with stop == 0
     for (auto& source : playlist)
     {
-        if (source.type != "image_ffmpeg")
+        if (source.type != SPLASH_GRAPH_TYPE_IMAGE_FFMPEG)
             continue;
 
         if (source.stop > source.start)
             continue;
 
-        auto videoSrc = _factory->create("image_ffmpeg");
+        auto videoSrc = _factory->create(SPLASH_GRAPH_TYPE_IMAGE_FFMPEG);
         videoSrc->setAttribute("file", {source.filename});
         Values duration;
         videoSrc->getAttribute("duration", duration);
@@ -392,7 +392,7 @@ QueueSurrogate::QueueSurrogate(RootObject* root)
     : Texture(root)
     , _filter(std::make_shared<Filter>(root))
 {
-    _filter = std::dynamic_pointer_cast<Filter>(_root->createObject("filter", "queueFilter_" + _name + std::to_string(_filterIndex++)).lock());
+    _filter = std::dynamic_pointer_cast<Filter>(_root->createObject(SPLASH_GRAPH_TYPE_FILTER, "queueFilter_" + _name + std::to_string(_filterIndex++)).lock());
     _filter->setAttribute("savable", {false});
 
     registerAttributes();
@@ -453,9 +453,9 @@ void QueueSurrogate::registerAttributes()
 
                 auto object = std::shared_ptr<GraphObject>();
 
-                if (type.find("image") != std::string::npos)
+                if (type.find(SPLASH_GRAPH_TYPE_IMAGE) != std::string::npos)
                 {
-                    auto image = std::dynamic_pointer_cast<Image>(_root->createObject("image", _name + DISTANT_NAME_SUFFIX).lock());
+                    auto image = std::dynamic_pointer_cast<Image>(_root->createObject(SPLASH_GRAPH_TYPE_IMAGE, _name + DISTANT_NAME_SUFFIX).lock());
                     image->zero();
                     image->setRemoteType(type);
                     object = image;

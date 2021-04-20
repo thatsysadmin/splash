@@ -16,7 +16,7 @@ namespace Splash
 Filter::Filter(RootObject* root)
     : Texture(root)
 {
-    _type = "filter";
+    _type = SPLASH_GRAPH_TYPE_FILTER;
     _renderingPriority = Priority::FILTER;
     registerAttributes();
 
@@ -70,7 +70,7 @@ bool Filter::linkIt(const std::shared_ptr<GraphObject>& obj)
     }
     else if (std::dynamic_pointer_cast<Image>(obj))
     {
-        auto tex = std::dynamic_pointer_cast<Texture_Image>(_root->createObject("texture_image", getName() + "_" + obj->getName() + "_tex").lock());
+        auto tex = std::dynamic_pointer_cast<Texture_Image>(_root->createObject(SPLASH_GRAPH_TYPE_TEXTUREIMAGE, getName() + "_" + obj->getName() + "_tex").lock());
         if (tex->linkTo(obj))
             return linkTo(tex);
         else
@@ -274,7 +274,7 @@ void Filter::updateUniforms()
         if (!obj)
             continue;
 
-        if (obj->getType() == "image")
+        if (obj->getType() == SPLASH_GRAPH_TYPE_IMAGE)
         {
             Values remainingTime, duration;
             obj->getAttribute("duration", duration);

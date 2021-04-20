@@ -58,7 +58,7 @@ void removeExtraParenthesis(std::string& str)
 /*************/
 void Image_Shmdata::init()
 {
-    _type = "image_shmdata";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_SHMDATA;
     registerAttributes();
 
     // This is used for getting documentation "offline"

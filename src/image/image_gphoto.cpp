@@ -297,7 +297,7 @@ std::string Image_GPhoto::getShutterspeedStringFromFloat(float duration)
 /*************/
 void Image_GPhoto::init()
 {
-    _type = "image_gphoto";
+    _type = SPLASH_GRAPH_TYPE_IMAGE_GPHOTO;
     registerAttributes();
 
     // This is used for getting documentation "offline"

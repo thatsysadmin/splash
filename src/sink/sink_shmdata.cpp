@@ -7,7 +7,7 @@ namespace Splash
 Sink_Shmdata::Sink_Shmdata(RootObject* root)
     : Sink(root)
 {
-    _type = "sink_shmdata";
+    _type = SPLASH_GRAPH_TYPE_SINK_SHMDATA;
     registerAttributes();
 }
 

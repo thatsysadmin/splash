@@ -165,6 +165,8 @@ std::shared_ptr<SerializedObject> Geometry::serialize() const
     *(reinterpret_cast<int*>(serializedObject->data())) = _alternativeVerticesNumber;
     for (auto& buffer : _glAlternativeBuffers)
     {
+        if (!buffer)
+            continue;
         auto newBuffer = buffer->getBufferAsVector(_alternativeVerticesNumber);
         auto oldSize = serializedObject->size();
         serializedObject->resize(serializedObject->size() + newBuffer.size());

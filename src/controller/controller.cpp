@@ -391,7 +391,6 @@ void ControllerObject::setObjectsOfType(const std::string& type, const std::stri
     for (const auto& branchName : branchList)
     {
         auto path = "/" + branchName + "/objects";
-        assert(tree->hasBranchAt(path));
         auto objectList = tree->getBranchListAt(path);
         for (const auto& objectName : objectList)
         {

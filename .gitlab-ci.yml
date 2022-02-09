@@ -51,6 +51,26 @@ test:20.04:gcc-bundled-libs:
     - ./build/src/splash --child --prefix unittest &
     - ./build/src/splash --doNotSpawn --prefix unittest ./data/share/splash/splash.json
 
+test:20.04:gcc-bundled-libs-arm64:
+  stage: test
+  image: arm64v8/ubuntu
+  script: 
+    # Install Metalab packages
+    - apt install -y --no-install-recommends software-properties-common
+    - add-apt-repository -y ppa:sat-metalab/metalab
+    - DEBIAN_FRONTEND=noninteractive apt install -y libshmdata-dev
+
+    # Prepare bundled dependencies
+    - ./make_deps.sh
+
+    # Test using bundled libs
+    - rm -rf build && mkdir build
+    - cmake -B build -DBUILD_GENERIC_ARCH=ON -DCMAKE_INSTALL_PREFIX=/usr
+    - make -sC build -j$(nproc)
+    - make test -sC build
+    - ./build/src/splash --child --prefix unittest &
+    - ./build/src/splash --doNotSpawn --prefix unittest ./data/share/splash/splash.json
+
 test:20.04:clang-bundled-libs:
   stage: test
   image: ubuntu:20.04

@@ -6,7 +6,7 @@ if [ ! -f README.md -o $(cat README.md | grep -c splash) == 0 ]; then
 fi
 
 # Make sure the submodules have been initialized and updated
-git submodule update --init
+git submodule update --init --recursive
 cd external
 
 # We use the same prefix for all built libs

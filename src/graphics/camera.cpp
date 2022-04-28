@@ -10,7 +10,6 @@
 #include <glm/gtx/vector_angle.hpp>
 
 #include "./core/scene.h"
-#include "./graphics/object.h"
 #include "./graphics/object_library.h"
 #include "./graphics/shader.h"
 #include "./graphics/texture.h"

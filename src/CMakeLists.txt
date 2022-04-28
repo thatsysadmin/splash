@@ -85,6 +85,10 @@ include_directories(${SNAPPY_INCLUDE_DIRS})
 include_directories(${Python3_INCLUDE_DIRS})
 include_directories(${CALIMIRO_INCLUDE_DIRS})
 
+if (OpenXR_FOUND)
+    include_directories(OpenXR::Headers)
+endif()
+
 # Distributed third parties first
 link_directories(${FFMPEG_LIBRARY_DIRS})
 link_directories(${SNAPPY_LIBRARY_DIRS})
@@ -297,6 +301,10 @@ target_link_libraries(splash-${API_VERSION} ${OpenCV_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${Python3_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${UUID_LIBRARIES})
 target_link_libraries(splash-${API_VERSION} ${CALIMIRO_LIBRARIES})
+
+if (OpenXR_FOUND)
+    target_link_libraries(splash-${API_VERSION} OpenXR::openxr_loader)
+endif()
 
 #
 # splash executable

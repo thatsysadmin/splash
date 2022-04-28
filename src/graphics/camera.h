@@ -69,7 +69,7 @@ class Camera : public GraphObject
      * Constructor
      * \param root Root object
      */
-    Camera(RootObject* root);
+    explicit Camera(RootObject* root);
 
     /**
      * Destructor
@@ -77,10 +77,12 @@ class Camera : public GraphObject
     ~Camera() override;
 
     /**
-     * No copy constructor, but a move one
+     * No move or copy constructor
      */
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
+    Camera(Camera&&) = delete;
+    Camera& operator=(Camera&&) = delete;
 
     /**
      * Tessellate the objects for this camera
@@ -130,7 +132,7 @@ class Camera : public GraphObject
 
     /**
      * Get the output texture for this camera
-     * \return Return a pointer to the output textures
+     * \return Return a pointer to the output texture
      */
     std::shared_ptr<Texture_Image> getTexture() const
     {
@@ -144,7 +146,7 @@ class Camera : public GraphObject
      * Get the timestamp
      * \return Return the timestamp in us
      */
-    virtual int64_t getTimestamp() const final { return _outFbo ? _outFbo->getColorTexture()->getTimestamp() : 0; }
+    int64_t getTimestamp() const final { return _outFbo ? _outFbo->getColorTexture()->getTimestamp() : 0; }
 
     /**
      * Get the coordinates of the closest vertex to the given point

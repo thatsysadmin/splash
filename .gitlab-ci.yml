@@ -40,6 +40,7 @@ test:20.04:gcc-bundled-libs:
     - apt install -y --no-install-recommends software-properties-common
     - add-apt-repository -y ppa:sat-metalab/metalab
     - DEBIAN_FRONTEND=noninteractive apt install -y libshmdata-dev
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
 
     # Prepare bundled dependencies
     - ./make_deps.sh
@@ -62,6 +63,7 @@ test:20.04:clang-bundled-libs:
     - apt install -y --no-install-recommends software-properties-common
     - add-apt-repository -y ppa:sat-metalab/metalab
     - DEBIAN_FRONTEND=noninteractive apt install -y libshmdata-dev
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
 
     # Prepare bundled dependencies
     - ./make_deps.sh
@@ -85,6 +87,7 @@ test:20.04:gcc-system-libs:
     - apt install -y --no-install-recommends software-properties-common
     - add-apt-repository -y ppa:sat-metalab/metalab
     - DEBIAN_FRONTEND=noninteractive apt install -y libshmdata-dev
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
 
     # Test using system libs
     - DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends libglfw3-dev libglm-dev
@@ -105,6 +108,7 @@ test:22.04:gcc-bundled-libs:
   script: 
     # Prepare bundled dependencies
     - ./make_deps.sh
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
 
     # Test using bundled libs
     - rm -rf build && mkdir build
@@ -122,6 +126,7 @@ test:22.04:clang-bundled-libs:
   script: 
     # Prepare bundled dependencies
     - ./make_deps.sh
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
 
     # Test using Clang
     - DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends clang
@@ -141,6 +146,7 @@ test:22.04:gcc-system-libs:
     # Test using system libs
     - DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends libglfw3-dev libglm-dev
       libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libsnappy-dev libzmq3-dev
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets  
     - rm -rf build && mkdir build
     - cmake -B build -DBUILD_GENERIC_ARCH=ON -DCMAKE_INSTALL_PREFIX=/usr -DUSE_SYSTEM_LIBS=ON
     - make -sC build -j$(nproc)
@@ -159,6 +165,7 @@ test:archlinux:
     - pacman -Sy --noconfirm git cmake make gcc yasm ccache pkgconfig libxi libxinerama libxrandr
       libxcursor jsoncpp mesa gsl libgphoto2 python3 portaudio zip zlib x264 x265 opencv qt5-base vtk
       hdf5 glew fmt openmpi
+    - git clone https://gitlab.com/sat-metalab/splash-assets.git assets
     - mkdir -p ccache
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/ccache

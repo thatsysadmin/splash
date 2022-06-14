@@ -64,11 +64,11 @@ link_directories(${Python3_LIBRARY_DIRS})
 #
 # Custom target to download the splash-assets repository
 #
-add_custom_command(OUTPUT clone_splash_assets
-    COMMAND if [ ! -d ${CMAKE_CURRENT_SOURCE_DIR}/assets ]; then $(git clone https://gitlab.com/sat-metalab/splash-assets ${CMAKE_CURRENT_SOURCE_DIR}/assets); fi
-    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/assets && git pull origin master
-)
-add_custom_target(download_splash_assets DEPENDS clone_splash_assets)
+# add_custom_command(OUTPUT clone_splash_assets
+#     COMMAND if [ ! -d ${CMAKE_CURRENT_SOURCE_DIR}/assets ]; then $(git clone https://gitlab.com/sat-metalab/splash-assets ${CMAKE_CURRENT_SOURCE_DIR}/assets); fi
+#     COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/assets && git pull origin master
+# )
+# add_custom_target(download_splash_assets DEPENDS clone_splash_assets)
 
 #
 # Unit tests (executed through 'make check' or 'make test')
@@ -134,12 +134,12 @@ if (NOT "${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
     add_dependencies(unitTests assets)
 endif()
 
-add_dependencies(unitTests download_splash_assets)
+# add_dependencies(unitTests download_splash_assets)
 target_link_libraries(unitTests splash-${API_VERSION})
 
 add_test(NAME unitTests COMMAND unitTests)
 
-add_custom_command(OUTPUT tests COMMAND unitTests)
+add_custom_command(OUTPUT tests COMMAND unitTests -s)
 add_custom_target(check DEPENDS tests)
 
 #
@@ -181,7 +181,7 @@ add_custom_command(OUTPUT integration_tests
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../src/splash -P ${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/integration_tests.py ${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/integrationTests.json
     DEPENDS splash
     )
-add_custom_target(check_integration DEPENDS integration_tests download_splash_assets)
+add_custom_target(check_integration DEPENDS integration_tests)# download_splash_assets)
 
 #
 # Static analysis through CppCheck

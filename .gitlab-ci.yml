@@ -175,7 +175,8 @@ test:archlinux:
   script:
     - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     - make -j$(nproc)
-    - make test
+    - make unitTests
+    - ./tests/unitTests
   except:
     - /^debian.*$/
 

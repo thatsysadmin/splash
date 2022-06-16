@@ -139,7 +139,7 @@ target_link_libraries(unitTests splash-${API_VERSION})
 
 add_test(NAME unitTests COMMAND unitTests)
 
-add_custom_command(OUTPUT tests COMMAND unitTests -s)
+add_custom_command(OUTPUT tests COMMAND unitTests)
 add_custom_target(check DEPENDS tests)
 
 #

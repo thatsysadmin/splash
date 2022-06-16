@@ -179,8 +179,6 @@ TEST_CASE("Testing Color Calibration")
     CHECK_EQ(status.size(), 1);
     //CHECK_EQ(status[0].as<bool>(), true);
 
-    return;
-
     //
     // Check functions for camera response function
     //

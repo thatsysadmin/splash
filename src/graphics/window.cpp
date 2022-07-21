@@ -778,6 +778,7 @@ void Window::registerAttributes()
             return true;
         },
         [&]() -> Values {
+            updateWindowShape();
             return {_windowRect[0], _windowRect[1]};
         },
         {'i', 'i'});

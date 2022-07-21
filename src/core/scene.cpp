@@ -8,6 +8,7 @@
 
 #include "./controller/controller_blender.h"
 #include "./controller/controller_gui.h"
+#include "./controller/window_mover.h"
 #include "./core/constants.h"
 #include "./network/link.h"
 #include "./graphics/camera.h"
@@ -497,7 +498,11 @@ void Scene::updateInputs()
 
     auto mouse = std::dynamic_pointer_cast<Mouse>(_mouse);
     if (mouse)
-        _gui->setMouseState(mouse->getState(_name));
+    {
+        auto mouseState = mouse->getState(_name);
+        _gui->setMouseState(mouseState);
+        _windowMover->setMouseState(mouseState);
+    }
 
     // Check if we should quit.
     if (Window::getQuitFlag())
@@ -520,23 +525,31 @@ void Scene::setAsMaster(const std::string& configFilePath)
     }
 
     _keyboard = std::make_shared<Keyboard>(this);
-    _mouse = std::make_shared<Mouse>(this);
-    _dragndrop = std::make_shared<DragNDrop>(this);
-
     if (_keyboard)
     {
         _keyboard->setName("keyboard");
         _objects[_keyboard->getName()] = _keyboard;
     }
+
+    _mouse = std::make_shared<Mouse>(this);
     if (_mouse)
     {
         _mouse->setName("mouse");
         _objects["mouse"] = _mouse;
     }
+
+    _dragndrop = std::make_shared<DragNDrop>(this);
     if (_dragndrop)
     {
         _dragndrop->setName("dragndrop");
         _objects[_dragndrop->getName()] = _dragndrop;
+    }
+
+    _windowMover = std::make_shared<WindowMover>(this);
+    if (_windowMover)
+    {
+        _windowMover->setName("windowMover");
+        _objects[_windowMover->getName()] = _windowMover;
     }
 
 #if HAVE_GPHOTO and HAVE_OPENCV

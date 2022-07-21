@@ -136,6 +136,12 @@ class Window final : public GraphObject
     virtual int64_t getTimestamp() const final { return _frontBufferTimestamp; }
 
     /**
+     * Check whether the window has a GUI connected to it
+     * \return True if connected to a GUI
+     */
+    bool hasGUI() const { return _gui != nullptr; }
+
+    /**
      * Check whether the window is initialized
      * \return Return true if the window is initialized
      */
@@ -297,6 +303,6 @@ class Window final : public GraphObject
     void updateWindowShape();
 };
 
-} // end of namespace
+} // namespace Splash
 
 #endif // SPLASH_WINDOW_H

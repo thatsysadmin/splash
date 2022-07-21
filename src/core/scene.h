@@ -46,6 +46,7 @@ namespace Splash
 class ControllerObject;
 class Gui;
 class Scene;
+class WindowMover;
 
 /*************/
 //! Scene class, which does the rendering on a given GPU
@@ -237,6 +238,7 @@ class Scene : public RootObject
     std::shared_ptr<GraphObject> _joystick{nullptr};
     std::shared_ptr<GraphObject> _dragndrop{nullptr};
     std::shared_ptr<GraphObject> _blender{nullptr};
+    std::shared_ptr<WindowMover> _windowMover{nullptr};
 
 // Objects in charge of calibration
 #if HAVE_GPHOTO and HAVE_OPENCV

@@ -135,6 +135,7 @@ target_sources(splash-${API_VERSION} PRIVATE
     controller/controller.cpp
     controller/controller_blender.cpp
     controller/controller_gui.cpp
+    controller/window_mover.cpp
     controller/widget/widget.cpp
     controller/widget/widget_calibration.cpp
     controller/widget/widget_control.cpp

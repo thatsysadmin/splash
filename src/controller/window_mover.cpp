@@ -35,13 +35,11 @@ void WindowMover::setMouseState(const std::vector<UserInput::State>& state)
             Log::get() << Log::DEBUGGING << "WindowMover::" << __FUNCTION__ << " - Input mouse state names an object which seems not to be a Window" << Log::endl;
             continue;
         }
-            
+
         // GUI windows should have decoration, and we don't want to mess
         // with the GUI controls
         if (window->hasGUI())
             continue;
-
-        const auto windowPositionAttr = getObjectAttribute(windowName, "position");
 
         if (s.action == "mouse_press")
         {
@@ -56,32 +54,34 @@ void WindowMover::setMouseState(const std::vector<UserInput::State>& state)
             _mousePosition[0] = s.value[0].as<int>();
             _mousePosition[1] = s.value[1].as<int>();
 
-            std::cout << _mousePosition[0] << " : " << _mousePosition[1] << "\n";
-
             if (!_isWindowDragged)
             {
-                _previousWindowPosition[0] = windowPositionAttr[0].as<int>();
-                _previousWindowPosition[1] = windowPositionAttr[1].as<int>();
-
                 _previousMousePosition[0] = _mousePosition[0];
                 _previousMousePosition[1] = _mousePosition[1];
             }
             else
             {
+                const auto windowPositionAttr = window->getAttribute("position").value();
+
+                const auto currentWindowPositionX = windowPositionAttr[0].as<int>();
+                const auto currentWindowPositionY = windowPositionAttr[1].as<int>();
+
                 const auto deltaX = _mousePosition[0] - _previousMousePosition[0];
                 const auto deltaY = _mousePosition[1] - _previousMousePosition[1];
 
-                _previousWindowPosition[0] = _previousWindowPosition[0] + deltaX;
-                _previousWindowPosition[1] = _previousWindowPosition[1] + deltaY;
+                const auto newWindowPositionX = currentWindowPositionX + deltaX;
+                const auto newWindowPositionY = currentWindowPositionY + deltaY;
 
-                //std::cout << newWindowPositionX << " : " << newWindowPositionY << "\n";
-                setObjectAttribute(windowName, "position", {_previousWindowPosition[0], _previousWindowPosition[1]});
+                // std::cout << newWindowPositionX << " : " << newWindowPositionY << "\n";
+                window->setAttribute("position", {newWindowPositionX, newWindowPositionY});
 
-                _previousMousePosition[0] = _mousePosition[0];
-                _previousMousePosition[1] = _mousePosition[1];
+                _previousMousePosition[0] = _mousePosition[0] - deltaX;
+                _previousMousePosition[1] = _mousePosition[1] - deltaY;
+
+                std::cout << deltaX << " " << deltaY << " " << _previousMousePosition[0] << " " << _previousMousePosition[1] << "\n";
             }
         }
     }
 }
 
-}
+} // namespace Splash

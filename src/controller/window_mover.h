@@ -50,7 +50,6 @@ class WindowMover final : public ControllerObject
   private:
     int _mousePosition[2];
     int _previousMousePosition[2];
-    int _previousWindowPosition[2];
     bool _isWindowDragged{false};
     std::string _draggedWindowName;
 };
